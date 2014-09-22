@@ -3,6 +3,9 @@ package main
 const (
 	WifiConnnectionService = "ECE10CF7-F74F-4E56-A03C-CE3120853589"
 
+	// colorizes the sphere's display for identification
+	ColorizeDisplay = "0DEB4AA3-BB1A-42DE-B4B5-5100D5551521"
+
 	// written to signal intent to pair, generates/displays code, starts SRP
 	PairIntentChar = "1DDAB97A-4769-4747-82BE-62413EFC2795"
 

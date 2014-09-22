@@ -78,6 +78,17 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router JSONRPCRouter, auth_
 
 	resetState()
 
+	svc.AddCharacteristic(gatt.MustParseUUID(ColorizeDisplay)).HandleWriteFunc(
+		func(r gatt.Request, data []byte) (status byte) {
+			if (state != StateAwaitingIntent) {
+				return gatt.StatusUnexpectedError
+			}
+
+			log.Println("Pretend color: ", string(data))
+
+			return gatt.StatusSuccess
+		})
+
 	svc.AddCharacteristic(gatt.MustParseUUID(PairIntentChar)).HandleWriteFunc(
 		func(r gatt.Request, data []byte) (status byte) {
 			if (state != StateAwaitingIntent && len(data) == 1 && data[0] == 0x01) {

@@ -102,7 +102,7 @@ func main() {
 			WriteToFile("/etc/wpa_supplicant.conf", s)
 			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
 			
-			cmd := exec.Command("ifup", "wlan0")
+			cmd := exec.Command("/sbin/ifup", "wlan0")
 			cmd.Start()
 			cmd.Wait() // shit will break badly if this fails :/
 			
