@@ -111,7 +111,7 @@ func main() {
 				// ow ow ow
 			}
 			
-			pong := JSONRPCResponse{"2.0", request.Id, serial_number, nil}
+			pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
 			resp <- pong
 		}()
 
