@@ -23,7 +23,7 @@ type AuthHandler interface {
     AuthenticationInvalidated()
 }
 
-func RegisterSecuredRPCService(srv *gatt.Server, rpc_router JSONRPCRouter, auth_handler AuthHandler) {
+func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler) {
 	svc := srv.AddService(gatt.MustParseUUID(WifiConnnectionService))
 
 	state := StateAwaitingIntent

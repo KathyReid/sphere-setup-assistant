@@ -3,120 +3,25 @@ package main
 import (
 	"github.com/paypal/gatt"
 	"log"
-	"encoding/json"
-	"github.com/theojulienne/go-wireless/iwlib"
-	"os"
-	"os/exec"
-	"io"
-	"strings"
+	"time"
 )
 
-type WifiNetwork struct {
-	SSID string `json:"name"`
-}
+const WirelessNetworkInterface = "wlan0"
 
-type WifiCredentials struct {
-	SSID string `json:"ssid"`
-	Key string `json:"key"`
-}
-
-const WPASupplicantTemplate = `
-ctrl_interface=/var/run/wpa_supplicant
-update_config=1
-p2p_disabled=1
- 
-network={
-	ssid="{{ssid}}"
-	scan_ssid=1
-	psk="{{key}}"
-	key_mgmt=WPA-PSK
-}
-`
-
-const WLANInterfaceTemplate = `
-auto wlan0
-iface wlan0 inet dhcp
-	pre-up /usr/local/sbin/wpa_supplicant -B -D nl80211 -i wlan0 -c /etc/wpa_supplicant.conf
-	post-down /usr/bin/killall -q wpa_supplicant
-`
-
-func WriteToFile(filename string, contents string) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	_, err = io.WriteString(f, contents)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// consider the wifi to be invalid after this timeout
+const WirelessStaleTimeout = time.Second * 10
 
 func main() {
+	iman := NewInterfaceManager(WirelessNetworkInterface)
+	wifi_manager, err := NewWifiManager(WirelessNetworkInterface)
+	if err != nil {
+		log.Fatal("Could not setup manager for wlan0, does the interface exist?")
+	}
+	defer wifi_manager.Cleanup()
+
 	// start by registering the RPC functions that will be accessible
 	// once the client has authenticated
-	rpc_router := JSONRPCRouter{}
-	rpc_router.Init()
-	rpc_router.AddHandler("sphere.setup.ping", func (request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
-
-		pong := JSONRPCResponse{"2.0", request.Id, 1234, nil}
-		resp <- pong
-
-		return resp
-	})
-	rpc_router.AddHandler("sphere.setup.get_visible_wifi_networks", func (request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
-		
-		networks, err := iwlib.GetWirelessNetworks("wlan0")
-		if err == nil {
-			wifi_networks := make([]WifiNetwork, len(networks))
-			for i, network := range networks {
-				wifi_networks[i].SSID = network.SSID
-			}
-
-			resp <- JSONRPCResponse{"2.0", request.Id, wifi_networks, nil}
-		} else {
-			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Could not retrieve WiFi networks", nil}}
-		}
-
-		return resp
-	})
-	rpc_router.AddHandler("sphere.setup.connect_wifi_network", func (request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
-
-		wifi_creds := new(WifiCredentials)
-		b, _ := json.Marshal(request.Params[0])
-		json.Unmarshal(b, wifi_creds)
-
-		log.Println("Got wifi credentials", wifi_creds)
-
-		s := strings.Replace(WPASupplicantTemplate,"{{ssid}}",wifi_creds.SSID,-1)
-		s = strings.Replace(s,"{{key}}",wifi_creds.Key,-1)
-
-		go func() {
-			WriteToFile("/etc/wpa_supplicant.conf", s)
-			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
-			
-			cmd := exec.Command("/sbin/ifup", "wlan0")
-			cmd.Start()
-			cmd.Wait() // shit will break badly if this fails :/
-			
-			serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
-			if err != nil {
-				// ow ow ow
-			}
-			
-			pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
-			resp <- pong
-		}()
-
-		return resp
-	})
+	rpc_router := GetSetupRPCRouter(wifi_manager)
 
 	srv := &gatt.Server{Name: "ninjasphere"}
 
@@ -126,6 +31,51 @@ func main() {
 	RegisterSecuredRPCService(srv, rpc_router, auth_handler)
 
 	// Start the server
-	log.Println("Starting setup assistant...");
-	log.Fatal(srv.AdvertiseAndServe())
+	//log.Println("Starting setup assistant...");
+	//log.Fatal(srv.AdvertiseAndServe())
+
+	states := wifi_manager.WatchState()
+
+	wifi_manager.WifiConfigured()
+	
+	var wireless_stale *time.Timer
+
+	// start by forcing the state to Disconnected.
+	// reloading the configuration in wpa_supplicant will also force this,
+	// but we need to do it here in case we are already disconnected
+	states <- WifiStateDisconnected
+	wifi_manager.Controller.ReloadConfiguration()
+
+	for {
+		state := <- states
+		log.Println("State:", state)
+
+		switch state {
+		case WifiStateConnected:
+			if wireless_stale != nil {
+				wireless_stale.Stop()
+			}
+			wireless_stale = nil
+			iman.Up()
+			log.Println("Connected and attempting to get IP.")
+
+		case WifiStateDisconnected:
+			iman.Down()
+			if wireless_stale == nil {
+				wireless_stale = time.AfterFunc(WirelessStaleTimeout, func() {
+					log.Println("Wireless is stale! Invalid SSID, router down, or not in range.")
+				})
+			}
+
+		case WifiStateInvalidKey:
+			// not stale, we actually know the key is wrong
+			if wireless_stale != nil {
+				wireless_stale.Stop()
+			}
+			wireless_stale = nil
+
+			log.Println("Wireless key is invalid!")
+
+		}
+	}
 }
