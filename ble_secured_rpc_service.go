@@ -23,7 +23,12 @@ type AuthHandler interface {
     AuthenticationInvalidated()
 }
 
-func RegisterSecuredRPCService(srv *gatt.Server, rpc_router JSONRPCRouter, auth_handler AuthHandler) {
+type PairingUI interface {
+	DisplayColorHint(color string)
+	DisplayPairingCode(code string)
+}
+
+func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler, pairing_ui PairingUI) {
 	svc := srv.AddService(gatt.MustParseUUID(WifiConnnectionService))
 
 	state := StateAwaitingIntent
@@ -84,7 +89,8 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router JSONRPCRouter, auth_
 				return gatt.StatusUnexpectedError
 			}
 
-			log.Println("Pretend color: ", string(data))
+			// log.Println("Pretend color: ", string(data))
+			pairing_ui.DisplayColorHint(string(data))
 
 			return gatt.StatusSuccess
 		})
@@ -101,6 +107,9 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router JSONRPCRouter, auth_
 
 			state = StateAwaitingBytesA
 			log.Println("State -> BytesA")
+
+			pairing_code := auth_handler.GetPassword()
+			pairing_ui.DisplayPairingCode(pairing_code)
 
 			return gatt.StatusSuccess
 		})

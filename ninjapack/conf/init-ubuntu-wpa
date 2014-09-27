@@ -1,0 +1,14 @@
+description "WPA Supplicant Launcher for wlan0"
+author      "http://www.ninjablocks.com"
+
+start on filesystem
+stop on runlevel [016] 
+
+respawn
+respawn limit 99 1
+
+limit nofile 32768 32768
+
+script
+	/usr/local/sbin/wpa_supplicant -D nl80211 -i wlan0 -c /etc/wpa_supplicant.conf > /var/log/wpa_supplicant.log
+end script

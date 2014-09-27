@@ -1,0 +1,21 @@
+description "Ninja Sphere Setup Assistant"
+author      "http://www.ninjablocks.com"
+
+start on started wpa_supplicant-wlan0
+stop on runlevel [016] 
+
+respawn
+respawn limit 99 1
+
+env RUN_AS=root
+env APPDIR=/opt/ninjablocks
+env APP=/opt/ninjablocks/bin/sphere-setup-assistant
+env LOG=/var/log/setup-assistant.log
+env TRACELOG=/dev/null
+env PID=/var/run/sphere-setup-assistant.pid
+
+limit nofile 32768 32768
+
+script
+    exec start-stop-daemon -d $APPDIR --start --chuid $RUN_AS --make-pidfile --pidfile $PID --exec $APP >> $LOG 2>&1 
+end script
