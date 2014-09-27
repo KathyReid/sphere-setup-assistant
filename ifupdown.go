@@ -20,7 +20,7 @@ func NewInterfaceManager(iface string) (*InterfaceManager) {
 }
 
 func (im *InterfaceManager) execCmd(cmd string) {
-	if im.cmd != nil {
+	if im.cmd != nil && im.cmd.Process != nil {
 		im.cmd.Process.Kill()
 	}
 

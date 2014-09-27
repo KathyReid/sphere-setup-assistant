@@ -16,9 +16,9 @@ type WifiCredentials struct {
 	Key string `json:"key"`
 }
 
-const WLANInterfaceTemplate = "iface wlan0 inet dhcp"
+const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
-func GetSetupRPCRouter(*WifiManager) *JSONRPCRouter {
+func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
 	rpc_router.AddHandler("sphere.setup.ping", func (request JSONRPCRequest) chan JSONRPCResponse {
@@ -58,13 +58,10 @@ func GetSetupRPCRouter(*WifiManager) *JSONRPCRouter {
 		log.Println("Got wifi credentials", wifi_creds)
 
 		go func() {
-			// ensure we have the interface configured, but don't do anything automatically
 			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
 			
-			cmd := exec.Command("/sbin/ifup", "wlan0")
-			cmd.Start()
-			cmd.Wait() // shit will break badly if this fails :/
-			
+			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
+
 			serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
 			if err != nil {
 				// ow ow ow

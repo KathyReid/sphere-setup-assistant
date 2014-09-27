@@ -80,3 +80,19 @@ func (m *WifiManager) WifiConfigured() (bool, error) {
 	return (enabledNetworks > 0), nil
 }
 
+func (m *WifiManager) AddStandardNetwork(ssid string, key string) (error) {
+	i, err := m.Controller.AddNetwork()
+	if err != nil {
+		return err
+	}
+	// FIXME: handle errors for all of these!
+	m.Controller.SetNetworkSettingString(i, "ssid", ssid)
+	m.Controller.SetNetworkSettingString(i, "psk", key)
+	m.Controller.SetNetworkSettingRaw(i, "scan_ssid", "1")
+	m.Controller.SetNetworkSettingRaw(i, "key_mgmt", "WPA-PSK")
+	m.Controller.SelectNetwork(i)
+	m.Controller.SaveConfiguration()
+
+	return nil
+}
+
