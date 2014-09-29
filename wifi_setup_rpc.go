@@ -60,15 +60,33 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		go func() {
 			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
 			
-			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
+			states := wifi_manager.WatchState()
 
-			serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
-			if err != nil {
-				// ow ow ow
+			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
+			
+			success := true
+			for {
+				state := <- states
+				if state == WifiStateConnected {
+					success = true
+					break
+				} else if state == WifiStateInvalidKey {
+					success = false
+					break
+				}
 			}
 			
-			pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
-			resp <- pong
+			if success {
+				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
+				if err != nil {
+					// ow ow ow
+				}
+				
+				pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
+				resp <- pong
+			} else {
+				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Could not connect to specified WiFi network, is the key correct?", nil}}
+			}
 		}()
 
 		return resp
