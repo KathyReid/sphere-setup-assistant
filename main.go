@@ -91,6 +91,9 @@ func main() {
 			}
 
 		case WifiStateInvalidKey:
+			if wireless_stale == nil {
+				wireless_stale = time.AfterFunc(WirelessStaleTimeout, handleBadWireless)
+			}
 			wifi_configured, _ = wifi_manager.WifiConfigured()
 			if wifi_configured {
 				// not stale, we actually know the key is wrong
