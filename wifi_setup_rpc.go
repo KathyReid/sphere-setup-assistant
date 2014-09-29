@@ -63,6 +63,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 			states := wifi_manager.WatchState()
 
 			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
+			wifi_manager.Controller.ReloadConfiguration()
 			
 			success := true
 			for {
