@@ -75,6 +75,8 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 					break
 				}
 			}
+
+			wifi_manager.UnwatchState(states)
 			
 			if success {
 				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()

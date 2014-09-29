@@ -39,9 +39,19 @@ func (m *WifiManager) WatchState() (chan string) {
 	return ch
 }
 
+func (m *WifiManager) UnwatchState(target chan string) {
+	for i,c := range m.stateChange {
+		if c == target {
+			m.stateChange[i] = nil
+		}
+	}
+}
+
 func (m *WifiManager) emitState(state string) {
 	for _,ch := range m.stateChange {
-		ch <- state
+		if ch != nil {
+			ch <- state
+		}
 	}
 }
 
