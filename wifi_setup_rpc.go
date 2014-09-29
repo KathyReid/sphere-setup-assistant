@@ -32,6 +32,9 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 
 	rpc_router.AddHandler("sphere.setup.get_visible_wifi_networks", func (request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
+
+		// Before we search for wifi networks, disable any that are try-fail-ing
+		wifi_manager.DisableAllNetworks()
 		
 		networks, err := iwlib.GetWirelessNetworks("wlan0")
 		if err == nil {
