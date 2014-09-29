@@ -93,12 +93,14 @@ func (m *WifiManager) WifiConfigured() (bool, error) {
 func (m *WifiManager) DisableAllNetworks() (error) {
 	networks, err := m.Controller.ListNetworks()
 	if err != nil {
-		return false, nil
+		return err
 	}
 
 	for _,network := range networks {
 		m.Controller.DisableNetwork(network.Id)
 	}
+
+	return nil
 }
 
 func (m *WifiManager) AddStandardNetwork(ssid string, key string) (error) {
