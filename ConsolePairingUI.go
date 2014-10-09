@@ -28,7 +28,7 @@ func (c *ControlChecker) StartHeartbeat() {
 	c.ticker = time.NewTicker(time.Second * 5)
 
 	go func() {
-		for t := range ticker.C {
+		for t := range c.ticker.C {
 
 			log.Printf("Sending heartbeat at", t)
 
