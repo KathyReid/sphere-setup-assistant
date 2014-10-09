@@ -6,23 +6,23 @@ import (
 )
 
 type JSONRPCError struct {
-	Code int `json:"code"`
-	Message string `json:"message"`
-	Data interface{} `json:"data"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
 type JSONRPCRequest struct {
-	JsonRPCTag string `json:"jsonrpc"`
-	Id string `json:"id"`
-	Method string `json:"method"`
+	string `json:"jsonrpc"`
+	Id     string        `json:"id"`
+	Method string        `json:"method"`
 	Params []interface{} `json:"params"`
 }
 
 type JSONRPCResponse struct {
-	JsonRPCTag string `json:"jsonrpc"`
-	Id string `json:"id"`
-	Result interface{} `json:"result"`
-	Error *JSONRPCError `json:"error"`
+	JsonRPCTag string        `json:"jsonrpc"`
+	Id         string        `json:"id"`
+	Result     interface{}   `json:"result"`
+	Error      *JSONRPCError `json:"error"`
 }
 
 type JSONRPCFunction func(request JSONRPCRequest) chan JSONRPCResponse
@@ -68,7 +68,7 @@ func (r *JSONRPCRouter) CallRaw(request []byte) chan []byte {
 	}
 	bytes_response := make(chan []byte, 1)
 	go func() {
-		to_marshal := <- response
+		to_marshal := <-response
 		fmt.Printf("About to marshal and send response: %v\n", to_marshal)
 		bytes, _ := json.Marshal(to_marshal)
 		bytes_response <- bytes
