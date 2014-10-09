@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/ninjasphere/go-ninja/api"
+	"github.com/ninjasphere/go-ninja/config"
 )
 
 type ConsolePairingUI struct {
-	conn *ninja.Connection
+	conn   *ninja.Connection
+	serial string
 }
 
 func NewConsolePairingUI() (*ConsolePairingUI, error) {
@@ -21,7 +23,8 @@ func NewConsolePairingUI() (*ConsolePairingUI, error) {
 	}
 
 	return &ConsolePairingUI{
-		conn: conn,
+		conn:   conn,
+		serial: config.Serial(),
 	}, nil
 }
 
@@ -91,5 +94,6 @@ func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
 	return nil
 }
 func (ui *ConsolePairingUI) sendRpcRequest(method string, payload map[string]string) error {
-	return ui.conn.GetServiceClient("$node/:node/led-controller").Call(method, []interface{}{payload}, nil, 15*time.Second)
+	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
+	return ui.conn.GetServiceClient(topic).Call(method, []interface{}{payload}, nil, 15*time.Second)
 }
