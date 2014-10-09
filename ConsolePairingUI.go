@@ -1,38 +1,31 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
-	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
-	"github.com/ninjasphere/go-ninja/config"
+	"github.com/ninjasphere/go-ninja/api"
 )
 
 type ConsolePairingUI struct {
-	client *mqtt.MqttClient
-	serial string
+	conn *ninja.Connection
 }
 
 func NewConsolePairingUI() (*ConsolePairingUI, error) {
 
-	mqttURL := fmt.Sprintf("tcp://%s:%d", config.MustString("mqtt", "host"), config.MustInt("mqtt", "port"))
+	conn, err := ninja.Connect("sphere-setup-assistant")
 
-	opts := mqtt.NewClientOptions().AddBroker(mqttURL).SetClientId("sphere-setup-assistant").SetCleanSession(true)
-	client := mqtt.NewClient(opts)
-
-	if _, err := client.Start(); err != nil {
-		return nil, err
+	if err != nil {
+		log.Fatalf("Failed to connect to mqtt: %s", err)
 	}
 
-	serial := config.Serial()
-
 	return &ConsolePairingUI{
-		client: client,
-		serial: serial,
+		conn: conn,
 	}, nil
 }
 
+// DisplayPairingCode makes an rpc call to the led-controller for displaying a color hint
 func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
@@ -49,10 +42,9 @@ func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 
 }
 
+// DisplayPairingCode makes an rpc call to the led-controller for displaying the pairing code
 func (ui *ConsolePairingUI) DisplayPairingCode(code string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"code":"1234"}],"jsonrpc": "2.0","method":"displayPairingCode","time":132123123}' -t '$node/:node/led-controller'
-
-	//
 
 	err := ui.sendRpcRequest("displayPairingCode", map[string]string{
 		"code": code,
@@ -67,20 +59,37 @@ func (ui *ConsolePairingUI) DisplayPairingCode(code string) error {
 	return nil
 }
 
-func (ui *ConsolePairingUI) sendRpcRequest(method string, payload map[string]string) error {
+// EnableControl once paired we need to led-controller to enable control
+func (ui *ConsolePairingUI) EnableControl() error {
+	// mosquitto_pub -m '{"id":123, "params": [],"jsonrpc": "2.0","method":"enableControl","time":132123123}' -t '$node/:node/led-controller'
 
-	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
-
-	data := JSONRPCRequest{"2.0", string(time.Now().Unix()), method, []interface{}{payload}}
-
-	msg, err := json.Marshal(&data)
+	err := ui.sendRpcRequest("enableControl", make(map[string]string))
 
 	if err != nil {
 		return err
 	}
 
-	ui.client.Publish(0, topic, msg)
+	fmt.Printf(" *** ENABLE CONTROL***\n")
 
 	return nil
+}
 
+// DisplayIcon
+func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
+	// mosquitto_pub -m '{"id":123, "params": [{"icon":"weather.png"}],"jsonrpc": "2.0","method":"displayIcon","time":132123123}' -t '$node/SLC6M6GIPGQAK/led-controller'
+
+	err := ui.sendRpcRequest("displayIcon", map[string]string{
+		"icon": icon,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf(" *** DISPLAY ICON: %s ***\n", icon)
+
+	return nil
+}
+func (ui *ConsolePairingUI) sendRpcRequest(method string, payload map[string]string) error {
+	return ui.conn.GetServiceClient("$node/:node/led-controller").Call(method, []interface{}{payload}, nil, 15*time.Second)
 }
