@@ -84,7 +84,11 @@ func main() {
 			iman.Up()
 			log.Println("Connected and attempting to get IP.")
 
-			pairing_ui.EnableControl()
+			err := pairing_ui.EnableControl()
+
+			if err != nil {
+				log.Fatalf("Could not enable control %s", err)
+			}
 
 			if is_serving_pairer {
 				is_serving_pairer = false
