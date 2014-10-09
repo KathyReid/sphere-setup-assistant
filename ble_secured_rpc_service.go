@@ -29,18 +29,18 @@ type PairingUI interface {
 	DisplayPairingCode(code string)
 }
 
-func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler, pairing_ui PairingUI) {
+func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler, pairing_ui *ConsolePairingUI) {
 	svc := srv.AddService(gatt.MustParseUUID(WifiConnnectionService))
 
 	state := StateAwaitingIntent
-	var ss *srplib.ServerSession = nil
-	var skey []byte = nil
-	var salt []byte = nil
-	var cauth []byte = nil
+	var ss *srplib.ServerSession
+	var skey []byte
+	var salt []byte
+	var cauth []byte
 	const ExpectedHashSizeBytes = (256 / 8)
-	var secret_key []byte = nil
+	var secret_key []byte
 	const FirstResponseIV = 0x8000000000000000
-	var last_enc_iv uint64 = 0
+	var last_enc_iv uint64
 	var last_dec_iv uint64 = FirstResponseIV
 	const RPCQueueSize = 32
 	rpc_queue := make(chan []byte, RPCQueueSize)
