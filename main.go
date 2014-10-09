@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/paypal/gatt"
 	"log"
 	"time"
+
+	"github.com/paypal/gatt"
 )
 
 const WirelessNetworkInterface = "wlan0"
@@ -28,7 +29,11 @@ func main() {
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")
 
-	pairing_ui := new(ConsolePairingUI)
+	pairing_ui, err := NewConsolePairingUI()
+
+	if err != nil {
+		log.Fatal("Could not setup ninja connection")
+	}
 
 	RegisterSecuredRPCService(srv, rpc_router, auth_handler, pairing_ui)
 
@@ -39,7 +44,7 @@ func main() {
 	states := wifi_manager.WatchState()
 
 	//wifi_manager.WifiConfigured()
-	
+
 	var wireless_stale *time.Timer
 
 	is_serving_pairer := false
@@ -51,14 +56,14 @@ func main() {
 	wifi_manager.Controller.ReloadConfiguration()
 
 	handleBadWireless := func() {
-					log.Println("Wireless is stale! Invalid SSID, router down, or not in range.")
+		log.Println("Wireless is stale! Invalid SSID, router down, or not in range.")
 
-					if !is_serving_pairer {
-						is_serving_pairer = true
-						log.Println("Launching BLE pairing assistant...")
-						go srv.AdvertiseAndServe()
-					}
-				}
+		if !is_serving_pairer {
+			is_serving_pairer = true
+			log.Println("Launching BLE pairing assistant...")
+			go srv.AdvertiseAndServe()
+		}
+	}
 
 	wifi_configured, _ := wifi_manager.WifiConfigured()
 	if !wifi_configured {
@@ -67,7 +72,7 @@ func main() {
 	}
 
 	for {
-		state := <- states
+		state := <-states
 		log.Println("State:", state)
 
 		switch state {
@@ -78,6 +83,8 @@ func main() {
 			wireless_stale = nil
 			iman.Up()
 			log.Println("Connected and attempting to get IP.")
+
+			pairing_ui.EnableControl()
 
 			if is_serving_pairer {
 				is_serving_pairer = false

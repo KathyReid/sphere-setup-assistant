@@ -1,19 +1,20 @@
 package main
 
 import (
-	"github.com/paypal/gatt"
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
+	"github.com/paypal/gatt"
 )
 
 func ChunkWrite(req *gatt.ReadRequest, resp gatt.ReadResponseWriter, out []byte) {
 	end := req.Offset + req.Cap
-	if (end > len(out)) {
+	if end > len(out) {
 		end = len(out)
 	}
 
-	if (req.Offset >= len(out)) {
+	if req.Offset >= len(out) {
 		resp.SetStatus(gatt.StatusUnexpectedError)
 		return
 	}
@@ -37,12 +38,12 @@ func MultiWritableCharacteristic(char *gatt.Characteristic, maxBytes uint64, wri
 				var nextOffset uint16
 				count := 0
 				for !n.Done() {
-					nextOffset = <- offsetReqChan
-					if (nextOffset != 0xffff) {
+					nextOffset = <-offsetReqChan
+					if nextOffset != 0xffff {
 						buf := new(bytes.Buffer)
 						err := binary.Write(buf, binary.LittleEndian, nextOffset)
 						if err != nil {
-							fmt.Printf("Error: %v\n", err);
+							fmt.Printf("Error: %v\n", err)
 						} else {
 							n.Write(buf.Bytes())
 						}
@@ -66,12 +67,12 @@ func MultiWritableCharacteristic(char *gatt.Characteristic, maxBytes uint64, wri
 				return gatt.StatusUnexpectedError
 			}
 
-			if (offset & 0x8000 != 0) {
+			if offset&0x8000 != 0 {
 				finalMessage = true
 				offset &= 0x7fff
 			}
 
-			if (offset < 0 || offset >= uint16(len(bytesWritten))) {
+			if offset < 0 || offset >= uint16(len(bytesWritten)) {
 				fmt.Println("Invalid offset specified")
 				return gatt.StatusUnexpectedError
 			}
@@ -79,12 +80,12 @@ func MultiWritableCharacteristic(char *gatt.Characteristic, maxBytes uint64, wri
 			payload := data[2:]
 			copy(bytesWritten[offset:], payload)
 			nextOffset := offset + uint16(len(payload))
-			if (expectedOffset == offset) { // if we just received the last packet
+			if expectedOffset == offset { // if we just received the last packet
 				expectedOffset = nextOffset
 			}
 
-			if (finalMessage && expectedOffset == nextOffset) {
-				if (offsetReqChan != nil) {
+			if finalMessage && expectedOffset == nextOffset {
+				if offsetReqChan != nil {
 					offsetReqChan <- 0xffff
 				}
 
@@ -92,7 +93,7 @@ func MultiWritableCharacteristic(char *gatt.Characteristic, maxBytes uint64, wri
 				expectedOffset = 0
 				return writeCompleteFunc(finalData)
 			} else {
-				if (offsetReqChan != nil) {
+				if offsetReqChan != nil {
 					offsetReqChan <- expectedOffset
 				}
 

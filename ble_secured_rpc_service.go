@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/paypal/gatt"
-	srplib "github.com/theojulienne/go-pkgs/crypto/srp"
-	"crypto/sha256"
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
 	"log"
+
+	"github.com/paypal/gatt"
+	srplib "github.com/theojulienne/go-pkgs/crypto/srp"
 )
 
 const (
@@ -18,9 +19,9 @@ const (
 )
 
 type AuthHandler interface {
-    GetUsername() string
-    GetPassword() string
-    AuthenticationInvalidated()
+	GetUsername() string
+	GetPassword() string
+	AuthenticationInvalidated()
 }
 
 type PairingUI interface {
@@ -36,7 +37,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 	var skey []byte = nil
 	var salt []byte = nil
 	var cauth []byte = nil
-	const ExpectedHashSizeBytes = (256/8)
+	const ExpectedHashSizeBytes = (256 / 8)
 	var secret_key []byte = nil
 	const FirstResponseIV = 0x8000000000000000
 	var last_enc_iv uint64 = 0
@@ -46,7 +47,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	srp, err := srplib.NewSRP("rfc5054.2048", sha256.New, nil)
 	if err != nil {
-	    panic(err)
+		panic(err)
 	}
 
 	resetState := func() {
@@ -75,7 +76,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 		salt_, verifier, err := srp.ComputeVerifier([]byte(hashed_password))
 		if err != nil {
-	 		panic(err)
+			panic(err)
 		}
 		salt = salt_
 		ss = srp.NewServerSession([]byte(auth_handler.GetUsername()), salt, verifier)
@@ -85,7 +86,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	svc.AddCharacteristic(gatt.MustParseUUID(ColorizeDisplay)).HandleWriteFunc(
 		func(r gatt.Request, data []byte) (status byte) {
-			if (state != StateAwaitingIntent) {
+			if state != StateAwaitingIntent {
 				state = StateAwaitingIntent // always allow restarting the pairing process, quietly
 				resetState()
 			}
@@ -98,10 +99,10 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	svc.AddCharacteristic(gatt.MustParseUUID(PairIntentChar)).HandleWriteFunc(
 		func(r gatt.Request, data []byte) (status byte) {
-			if (state != StateAwaitingIntent && len(data) == 1 && data[0] == 0x01) {
+			if state != StateAwaitingIntent && len(data) == 1 && data[0] == 0x01 {
 				resetState()
 				// reset and start!
-			} else if (state != StateAwaitingIntent || len(data) != 1 || data[0] != 0x01) {
+			} else if state != StateAwaitingIntent || len(data) != 1 || data[0] != 0x01 {
 				resetState()
 				return gatt.StatusUnexpectedError
 			}
@@ -117,32 +118,32 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	bac := svc.AddCharacteristic(gatt.MustParseUUID(SRPBytesAChar))
 	MultiWritableCharacteristic(bac, 512, func(data []byte) byte {
-			if (state != StateAwaitingBytesA) {
-				resetState()
-				return gatt.StatusUnexpectedError
-			}
+		if state != StateAwaitingBytesA {
+			resetState()
+			return gatt.StatusUnexpectedError
+		}
 
-			log.Printf("Final data %d bytes: %v\n", len(data), data)
-			skey_, err := ss.ComputeKey(data)
-			if err != nil {
-			    log.Fatal(err)
-			    resetState()
-				return gatt.StatusUnexpectedError
-			}
-			skey = skey_
-			log.Printf("The Server's computed session key is %v len: %v\n", len(skey), skey)
-			secret_key = skey
+		log.Printf("Final data %d bytes: %v\n", len(data), data)
+		skey_, err := ss.ComputeKey(data)
+		if err != nil {
+			log.Fatal(err)
+			resetState()
+			return gatt.StatusUnexpectedError
+		}
+		skey = skey_
+		log.Printf("The Server's computed session key is %v len: %v\n", len(skey), skey)
+		secret_key = skey
 
-			state = StateAwaitingBytesM
-			log.Println("State -> BytesM")
+		state = StateAwaitingBytesM
+		log.Println("State -> BytesM")
 
-			return gatt.StatusSuccess
-		})
+		return gatt.StatusSuccess
+	})
 
 	svc.AddCharacteristic(gatt.MustParseUUID(SRPBytesSChar)).HandleRead(
 		gatt.ReadHandlerFunc(
 			func(resp gatt.ReadResponseWriter, req *gatt.ReadRequest) {
-				if (state != StateAwaitingBytesM) {
+				if state != StateAwaitingBytesM {
 					resetState()
 					resp.SetStatus(gatt.StatusUnexpectedError)
 					return
@@ -157,7 +158,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 	svc.AddCharacteristic(gatt.MustParseUUID(SRPBytesBChar)).HandleRead(
 		gatt.ReadHandlerFunc(
 			func(resp gatt.ReadResponseWriter, req *gatt.ReadRequest) {
-				if (state != StateAwaitingBytesM) {
+				if state != StateAwaitingBytesM {
 					resetState()
 					resp.SetStatus(gatt.StatusUnexpectedError)
 					return
@@ -171,31 +172,31 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	bmc := svc.AddCharacteristic(gatt.MustParseUUID(SRPBytesMChar))
 	MultiWritableCharacteristic(bmc, 256, func(data []byte) byte {
-			if (state != StateAwaitingBytesM || len(data) != ExpectedHashSizeBytes) {
-				log.Println("Received bytes", len(data))
-				resetState()
-				return gatt.StatusUnexpectedError
-			}
+		if state != StateAwaitingBytesM || len(data) != ExpectedHashSizeBytes {
+			log.Println("Received bytes", len(data))
+			resetState()
+			return gatt.StatusUnexpectedError
+		}
 
-			if !ss.VerifyClientAuthenticator(data) {
-			    log.Println("Client Authenticator is not valid")
-			    resetState()
-				return gatt.StatusUnexpectedError
-			}
+		if !ss.VerifyClientAuthenticator(data) {
+			log.Println("Client Authenticator is not valid")
+			resetState()
+			return gatt.StatusUnexpectedError
+		}
 
-			cauth = data
-			state = StateClientVerfied
-			last_enc_iv = 0
-			last_dec_iv = FirstResponseIV
-			log.Println("State -> StateClientVerfied")
+		cauth = data
+		state = StateClientVerfied
+		last_enc_iv = 0
+		last_dec_iv = FirstResponseIV
+		log.Println("State -> StateClientVerfied")
 
-			return gatt.StatusSuccess
-		})
+		return gatt.StatusSuccess
+	})
 
 	svc.AddCharacteristic(gatt.MustParseUUID(SRPBytesHAMKChar)).HandleRead(
 		gatt.ReadHandlerFunc(
 			func(resp gatt.ReadResponseWriter, req *gatt.ReadRequest) {
-				if (state != StateClientVerfied) {
+				if state != StateClientVerfied {
 					resetState()
 					resp.SetStatus(gatt.StatusUnexpectedError)
 					return
@@ -208,7 +209,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 
 	rpc := svc.AddCharacteristic(gatt.MustParseUUID(CommsChanChar))
 	MultiWritableCharacteristic(rpc, 1024, func(data []byte) byte {
-		if (state != StateClientVerfied) {
+		if state != StateClientVerfied {
 			resetState()
 			return gatt.StatusUnexpectedError
 		}
@@ -238,7 +239,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 		// make the response here, at any time!
 		go func() {
 			//response_raw := []byte(rpc_in)
-			response_raw := <- resp_channel
+			response_raw := <-resp_channel
 
 			last_dec_iv += 1
 			rpc_out, err := encrypt(secret_key, response_raw, last_dec_iv)
@@ -247,7 +248,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 				return
 			}
 
-			tmp_response := make([]byte, len(rpc_out) + TransportIVSize)
+			tmp_response := make([]byte, len(rpc_out)+TransportIVSize)
 			binary.LittleEndian.PutUint64(tmp_response, last_dec_iv)
 			copy(tmp_response[TransportIVSize:], rpc_out)
 
@@ -260,12 +261,12 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 		func(r gatt.Request, n gatt.Notifier) {
 			go func() {
 				for !n.Done() {
-					full_msg := <- rpc_queue
+					full_msg := <-rpc_queue
 					fmt.Printf("Ready to send: %v\n", full_msg)
 
 					const SizePerMessage = 16
 
-					for i := 0; i < len(full_msg); i+=SizePerMessage {
+					for i := 0; i < len(full_msg); i += SizePerMessage {
 						flags := 0
 						// mark final message
 						if i+SizePerMessage >= len(full_msg) {
@@ -278,8 +279,8 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 						}
 
 						to_send := full_msg[i:end]
-						buffer := make([]byte, len(to_send) + 2)
-						binary.LittleEndian.PutUint16(buffer, uint16(i | flags))
+						buffer := make([]byte, len(to_send)+2)
+						binary.LittleEndian.PutUint16(buffer, uint16(i|flags))
 						copy(buffer[2:], to_send)
 
 						n.Write(buffer)

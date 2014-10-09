@@ -1,17 +1,17 @@
 package main
 
 import (
-	"os/exec"
 	"log"
+	"os/exec"
 )
 
 type InterfaceManager struct {
-	iface string
-	cmd *exec.Cmd
+	iface    string
+	cmd      *exec.Cmd
 	cmdReady chan bool
 }
 
-func NewInterfaceManager(iface string) (*InterfaceManager) {
+func NewInterfaceManager(iface string) *InterfaceManager {
 	im := &InterfaceManager{iface, nil, make(chan bool, 1)}
 
 	im.cmdReady <- true // start out as if a process has exited
@@ -24,7 +24,7 @@ func (im *InterfaceManager) execCmd(cmd string) {
 		im.cmd.Process.Kill()
 	}
 
-	<- im.cmdReady
+	<-im.cmdReady
 
 	im.cmd = exec.Command(cmd)
 	go func() {
