@@ -35,6 +35,8 @@ func main() {
 		log.Fatal("Could not setup ninja connection")
 	}
 
+	controlChecker := NewControlChecker(pairing_ui)
+
 	RegisterSecuredRPCService(srv, rpc_router, auth_handler, pairing_ui)
 
 	// Start the server
@@ -84,11 +86,7 @@ func main() {
 			iman.Up()
 			log.Println("Connected and attempting to get IP.")
 
-			err := pairing_ui.EnableControl()
-
-			if err != nil {
-				log.Fatalf("Could not enable control %s", err)
-			}
+			controlChecker.StartHeartbeat()
 
 			if is_serving_pairer {
 				is_serving_pairer = false

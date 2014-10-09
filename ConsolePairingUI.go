@@ -3,17 +3,64 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 )
 
+// ControlChecker sends a heartbeat led controller to ensure it is in control mode
+type ControlChecker struct {
+	sync.Mutex
+	pairingUI *ConsolePairingUI
+	ticker    *time.Ticker
+}
+
+func NewControlChecker(pairingUI *ConsolePairingUI) *ControlChecker {
+	return &ControlChecker{pairingUI: pairingUI}
+}
+
+func (c *ControlChecker) StartHeartbeat() {
+	c.Lock()
+	defer c.Unlock()
+
+	c.ticker = time.NewTicker(time.Second * 5)
+
+	go func() {
+		for t := range ticker.C {
+
+			log.Printf("Sending heartbeat at", t)
+
+			err := c.pairingUI.EnableControl()
+
+			if err != nil {
+				log.Printf("Failed to send enable", err)
+			}
+		}
+	}()
+
+}
+
+func (c *ControlChecker) StopHeartbeat() {
+	c.Lock()
+	defer c.Unlock()
+
+	if c.ticker != nil {
+		c.ticker.Stop()
+
+		// TODO check if ticker was running and send DisableControl
+	}
+
+}
+
+// ConsolePairingUI proxy interface to the led controller
 type ConsolePairingUI struct {
 	conn   *ninja.Connection
 	serial string
 }
 
+// NewConsolePairingUI build a new console pairing ui
 func NewConsolePairingUI() (*ConsolePairingUI, error) {
 
 	conn, err := ninja.Connect("sphere-setup-assistant")
