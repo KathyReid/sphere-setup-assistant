@@ -37,9 +37,9 @@ func (im *InterfaceManager) execCmd(cmd string) {
 }
 
 func (im *InterfaceManager) Up() {
-	im.execCmd("ifup " + im.iface)
+	im.execCmd("/sbin/ifup " + im.iface)
 }
 
 func (im *InterfaceManager) Down() {
-	im.execCmd("ifdown " + im.iface)
+	im.execCmd("/sbin/ifdown " + im.iface)
 }
