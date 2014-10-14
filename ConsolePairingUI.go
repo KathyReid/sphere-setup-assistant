@@ -79,6 +79,8 @@ func NewConsolePairingUI() (*ConsolePairingUI, error) {
 func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
+	fmt.Printf(" *** COLOR HINT: %s ***\n", color)
+
 	err := ui.sendRpcRequest("displayColor", map[string]string{
 		"color": color,
 	})
@@ -87,7 +89,6 @@ func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 		return err
 	}
 
-	fmt.Printf(" *** COLOR HINT: %s ***\n", color)
 	return nil
 
 }
@@ -96,6 +97,8 @@ func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 func (ui *ConsolePairingUI) DisplayPairingCode(code string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"code":"1234"}],"jsonrpc": "2.0","method":"displayPairingCode","time":132123123}' -t '$node/:node/led-controller'
 
+	fmt.Printf(" *** PAIRING CODE: %s ***\n", code)
+
 	err := ui.sendRpcRequest("displayPairingCode", map[string]string{
 		"code": code,
 	})
@@ -103,8 +106,6 @@ func (ui *ConsolePairingUI) DisplayPairingCode(code string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf(" *** PAIRING CODE: %s ***\n", code)
 
 	return nil
 }
@@ -128,6 +129,8 @@ func (ui *ConsolePairingUI) EnableControl() error {
 func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"icon":"weather.png"}],"jsonrpc": "2.0","method":"displayIcon","time":132123123}' -t '$node/SLC6M6GIPGQAK/led-controller'
 
+	fmt.Printf(" *** DISPLAY ICON: %s ***\n", icon)
+
 	err := ui.sendRpcRequest("displayIcon", map[string]string{
 		"icon": icon,
 	})
@@ -135,8 +138,6 @@ func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf(" *** DISPLAY ICON: %s ***\n", icon)
 
 	return nil
 }
