@@ -19,14 +19,14 @@ func NewInterfaceManager(iface string) *InterfaceManager {
 	return im
 }
 
-func (im *InterfaceManager) execCmd(cmd string) {
+func (im *InterfaceManager) execCmd(cmd string, arg string) {
 	if im.cmd != nil && im.cmd.Process != nil {
 		im.cmd.Process.Kill()
 	}
 
 	<-im.cmdReady
 
-	im.cmd = exec.Command(cmd)
+	im.cmd = exec.Command(cmd, arg)
 	go func() {
 		out, _ := im.cmd.CombinedOutput()
 		log.Println("cmd returned with:", out)
@@ -37,9 +37,9 @@ func (im *InterfaceManager) execCmd(cmd string) {
 }
 
 func (im *InterfaceManager) Up() {
-	im.execCmd("/sbin/ifup " + im.iface)
+	im.execCmd("/sbin/ifup", im.iface)
 }
 
 func (im *InterfaceManager) Down() {
-	im.execCmd("/sbin/ifdown " + im.iface)
+	im.execCmd("/sbin/ifdown", im.iface)
 }
