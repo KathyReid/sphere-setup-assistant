@@ -3,6 +3,7 @@ package main
 import (
         "os/exec"
         "strings"
+	"log"
 )
 
 type UpstartJob struct {
@@ -10,7 +11,7 @@ type UpstartJob struct {
 }
 
 func (j *UpstartJob) Status() (string, error) {
-        out, err := exec.Command("status " + j.Name).Output()
+        out, err := exec.Command("/sbin/status", j.Name).Output()
         if err != nil {
                 parts := strings.Split(string(out), " ")
                 return parts[1], nil
@@ -30,9 +31,13 @@ func (j *UpstartJob) Running() (bool, error) {
 }
 
 func (j *UpstartJob) Start() {
-        exec.Command("start " + j.Name).Run()
+	log.Println("Starting upstart job: ", j.Name)
+        data, err := exec.Command("/sbin/start", j.Name).Output()
+	log.Println(string(data), err)
 }
 
 func (j *UpstartJob) Stop() {
-        exec.Command("stop " + j.Name).Run()
+	log.Println("Stopping upstart job: ", j.Name)
+        data, err := exec.Command("/sbin/stop", j.Name).Output()
+	log.Println(string(data), err)
 }
