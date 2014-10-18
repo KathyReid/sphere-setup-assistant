@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"time"
+	"flag"
 
 	"github.com/paypal/gatt"
 )
@@ -12,7 +13,23 @@ const WirelessNetworkInterface = "wlan0"
 // consider the wifi to be invalid after this timeout
 const WirelessStaleTimeout = time.Second * 10 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
 
+var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
+
 func main() {
+	// ap0 adhoc/hostap management
+	config := LoadConfig("/etc/opt/ninjablocks/setup-assistant.conf")
+	apManager := NewAccessPointManager(config)
+	
+	flag.Parse()
+	if (*firewallHook) {
+		log.Println("Setting ip firewall rules...")
+		apManager.SetupFirewall()
+		return
+	}
+
+	apManager.WriteAPConfig()
+
+	// wlan0 client management
 	iman := NewInterfaceManager(WirelessNetworkInterface)
 	wifi_manager, err := NewWifiManager(WirelessNetworkInterface)
 	if err != nil {
