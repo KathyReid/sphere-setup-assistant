@@ -17,7 +17,7 @@ var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based
 
 func main() {
 	// ap0 adhoc/hostap management
-	config := LoadConfig("/etc/opt/ninjablocks/setup-assistant.conf")
+	config := LoadConfig("/etc/opt/ninja/setup-assistant.conf")
 	apManager := NewAccessPointManager(config)
 	
 	flag.Parse()
@@ -28,6 +28,7 @@ func main() {
 	}
 
 	apManager.WriteAPConfig()
+	apManager.StartHostAP()
 
 	// wlan0 client management
 	iman := NewInterfaceManager(WirelessNetworkInterface)

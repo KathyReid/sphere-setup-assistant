@@ -21,6 +21,10 @@ func NewAccessPointManager(config AssistantConfig) *AccessPointManager {
 	return manager
 }
 
+func (a *AccessPointManager) StartHostAP() {
+	a.HostapdJob.Start()
+}
+
 func (a *AccessPointManager) WriteAPConfig() {
 	s := ""
 	s += "interface=ap0\n"
@@ -39,21 +43,24 @@ func (a *AccessPointManager) WriteAPConfig() {
 	ioutil.WriteFile("/etc/hostapd-ap0.conf", []byte(s), 0600)
 }
 
-func (a *AccessPointManager) iptables(cmd string) {
-	log.Println("iptables " + cmd)
-	exec.Command("iptables " + cmd).Run()
+func (a *AccessPointManager) iptables(cmd ...string) {
+	log.Println("iptables ", cmd)
+	err := exec.Command("/sbin/iptables", cmd...).Run()
+	if err != nil {
+		log.Fatal("iptables failed: ", err)
+	}
 }
 
 func (a *AccessPointManager) SetupFirewall() {
 	if (a.config.Wireless_Host.Full_Network_Access) {
 		a.iptables("-F")
 	} else {
-		a.iptables("iptables -P INPUT ACCEPT")
-		a.iptables("iptables -P OUTPUT ACCEPT")
-		a.iptables("iptables -P FORWARD ACCEPT")
-		a.iptables("iptables -F")
+		a.iptables("-P", "INPUT", "ACCEPT")
+		a.iptables("-P", "OUTPUT", "ACCEPT")
+		a.iptables("-P", "FORWARD", "ACCEPT")
+		a.iptables("-F")
 
 		// allow nothing on here. before doing this, we will eventually allow setup access on one port.
-		a.iptables("iptables -A INPUT -i " + a.NetworkInterface + " -j DROP")
+		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-j", "DROP")
 	}
 }
