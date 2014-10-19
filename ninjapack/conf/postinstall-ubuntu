@@ -1,0 +1,2 @@
+# nukes the default package-provided config file
+cp /etc/dnsmasq.conf.ninja-def /etc/dnsmasq.conf
