@@ -10,6 +10,7 @@ type AssistantConfig struct {
 		SSID string
 		Key string
 		Full_Network_Access bool
+		Always_Active bool
 	}
 }
 
@@ -21,6 +22,7 @@ func LoadConfig(path string) AssistantConfig {
 	cfg.Wireless_Host.SSID = "NinjaSphere-" + string(uniqueSuffix)
 	cfg.Wireless_Host.Key = "ninjasphere"
 	cfg.Wireless_Host.Full_Network_Access = false
+	cfg.Wireless_Host.Always_Active = false
 	
 	// load from config file (optionally)
 	gcfg.ReadFileInto(&cfg, path)

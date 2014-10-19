@@ -22,7 +22,12 @@ func NewAccessPointManager(config AssistantConfig) *AccessPointManager {
 }
 
 func (a *AccessPointManager) StartHostAP() {
+	a.HostapdJob.Stop()
 	a.HostapdJob.Start()
+}
+
+func (a *AccessPointManager) StopHostAP() {
+	a.HostapdJob.Stop()
 }
 
 func (a *AccessPointManager) WriteAPConfig() {

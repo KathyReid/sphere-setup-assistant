@@ -28,7 +28,9 @@ func main() {
 	}
 
 	apManager.WriteAPConfig()
-	apManager.StartHostAP()
+	if config.Wireless_Host.Always_Active {
+		apManager.StartHostAP()
+	}
 
 	// wlan0 client management
 	iman := NewInterfaceManager(WirelessNetworkInterface)
@@ -82,6 +84,12 @@ func main() {
 			is_serving_pairer = true
 			log.Println("Launching BLE pairing assistant...")
 			go srv.AdvertiseAndServe()
+
+			// and if the hostap isn't normally active, make it active
+			if !config.Wireless_Host.Always_Active {
+				log.Println("Launching AdHoc pairing assistant...")
+				apManager.StartHostAP()
+			}
 		}
 	}
 
@@ -109,6 +117,12 @@ func main() {
 			if is_serving_pairer {
 				is_serving_pairer = false
 				srv.Close()
+
+				// and if the hostap isn't normally active, turn it off again
+				if !config.Wireless_Host.Always_Active {
+					log.Println("Terminating AdHoc pairing assistant.")
+					apManager.StopHostAP()
+				}
 			}
 
 		case WifiStateDisconnected:
