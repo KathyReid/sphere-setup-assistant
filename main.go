@@ -30,6 +30,8 @@ func main() {
 	apManager.WriteAPConfig()
 	if config.Wireless_Host.Always_Active {
 		apManager.StartHostAP()
+	} else {
+		apManager.StopHostAP()
 	}
 
 	// wlan0 client management
