@@ -11,6 +11,7 @@ type AssistantConfig struct {
 		Key string
 		Full_Network_Access bool
 		Always_Active bool
+		Enables_Control bool
 	}
 }
 
@@ -23,6 +24,7 @@ func LoadConfig(path string) AssistantConfig {
 	cfg.Wireless_Host.Key = "ninjasphere"
 	cfg.Wireless_Host.Full_Network_Access = false
 	cfg.Wireless_Host.Always_Active = false
+	cfg.Wireless_Host.Enables_Control = false
 	
 	// load from config file (optionally)
 	gcfg.ReadFileInto(&cfg, path)

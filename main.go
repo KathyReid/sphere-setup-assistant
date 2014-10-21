@@ -101,6 +101,11 @@ func main() {
 		handleBadWireless()
 	}
 
+	if config.Wireless_Host.Enables_Control {
+		// the wireless AP causes control to be enabled, so we just start the heartbeat immediately
+		controlChecker.StartHeartbeat()
+	}
+
 	for {
 		state := <-states
 		log.Println("State:", state)
@@ -114,7 +119,10 @@ func main() {
 			iman.Up()
 			log.Println("Connected and attempting to get IP.")
 
-			controlChecker.StartHeartbeat()
+			if !config.Wireless_Host.Enables_Control {
+				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
+				controlChecker.StartHeartbeat()
+			}
 
 			if is_serving_pairer {
 				is_serving_pairer = false
