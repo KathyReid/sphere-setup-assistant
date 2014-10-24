@@ -10,11 +10,17 @@ import (
 	"github.com/ninjasphere/go-ninja/config"
 )
 
+const (
+	rpcStateIdle             = 0
+	rpcStateAwaitingResponse = 1
+)
+
 // ControlChecker sends a heartbeat led controller to ensure it is in control mode
 type ControlChecker struct {
 	sync.Mutex
 	pairingUI *ConsolePairingUI
 	ticker    *time.Ticker
+	state     int
 }
 
 func NewControlChecker(pairingUI *ConsolePairingUI) *ControlChecker {
@@ -29,6 +35,15 @@ func (c *ControlChecker) StartHeartbeat() {
 
 	go func() {
 		for t := range c.ticker.C {
+			// are we in call
+			if c.state == rpcStateAwaitingResponse {
+				// if so skip this request
+				return
+			}
+
+			// otherwise preseed
+			c.state = rpcStateAwaitingResponse
+			defer func() { c.state = rpcStateIdle }()
 
 			log.Printf("Sending heartbeat at", t)
 
