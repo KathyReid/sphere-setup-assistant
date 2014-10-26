@@ -1,2 +1,3 @@
 # nukes the default package-provided config file
 cp /etc/dnsmasq.conf.ninja-def /etc/dnsmasq.conf
+chmod 0600 /etc/opt/ninja/setup-assistant.conf
