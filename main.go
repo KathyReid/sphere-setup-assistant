@@ -25,7 +25,7 @@ func main() {
 
 	flag.Parse()
 	if *firewallHook {
-		log.Println("Setting ip firewall rules...")
+		logger.Debugf("Setting ip firewall rules...")
 		apManager.SetupFirewall()
 		return
 	}
@@ -83,16 +83,16 @@ func main() {
 	wifi_manager.Controller.ReloadConfiguration()
 
 	handleBadWireless := func() {
-		log.Println("Wireless is stale! Invalid SSID, router down, or not in range.")
+		logger.Warningf("Wireless is stale! Invalid SSID, router down, or not in range.")
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
-			log.Println("Launching BLE pairing assistant...")
+			logger.Debugf("Launching BLE pairing assistant...")
 			go srv.AdvertiseAndServe()
 
 			// and if the hostap isn't normally active, make it active
 			if !config.Wireless_Host.Always_Active {
-				log.Println("Launching AdHoc pairing assistant...")
+				logger.Debugf("Launching AdHoc pairing assistant...")
 				apManager.StartHostAP()
 			}
 		}
@@ -111,7 +111,7 @@ func main() {
 
 	for {
 		state := <-states
-		log.Println("State:", state)
+		logger.Debugf("State: %s", state)
 
 		switch state {
 		case WifiStateConnected:
@@ -120,7 +120,7 @@ func main() {
 			}
 			wireless_stale = nil
 			iman.Up()
-			log.Println("Connected and attempting to get IP.")
+			logger.Debugf("Connected and attempting to get IP.")
 
 			if !config.Wireless_Host.Enables_Control {
 				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
@@ -133,7 +133,7 @@ func main() {
 
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {
-					log.Println("Terminating AdHoc pairing assistant.")
+					logger.Debugf("Terminating AdHoc pairing assistant.")
 					apManager.StopHostAP()
 				}
 			}
@@ -157,7 +157,7 @@ func main() {
 				}
 				wireless_stale = nil*/
 
-				log.Println("Wireless key is invalid!")
+				logger.Warningf("Wireless key is invalid!")
 			}
 		}
 	}

@@ -1,15 +1,15 @@
 package main
 
 import (
-	"os/exec"
 	"io/ioutil"
 	"log"
+	"os/exec"
 )
 
 type AccessPointManager struct {
 	NetworkInterface string
-	HostapdJob UpstartJob
-	config AssistantConfig
+	HostapdJob       UpstartJob
+	config           AssistantConfig
 }
 
 func NewAccessPointManager(config AssistantConfig) *AccessPointManager {
@@ -57,7 +57,7 @@ func (a *AccessPointManager) iptables(cmd ...string) {
 }
 
 func (a *AccessPointManager) SetupFirewall() {
-	if (a.config.Wireless_Host.Full_Network_Access) {
+	if a.config.Wireless_Host.Full_Network_Access {
 		a.iptables("-F")
 	} else {
 		a.iptables("-P", "INPUT", "ACCEPT")

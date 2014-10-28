@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto/rand"
-	"fmt"
 	"encoding/binary"
+	"fmt"
 )
 
 type OneTimeAuthHandler struct {
@@ -24,8 +24,8 @@ func (a *OneTimeAuthHandler) AuthenticationInvalidated() {
 	}
 	// even though 2^32-1 doesn't divide evenly here, the probabilities
 	// are small enough that all 10,000 numbers are equally likely.
-	a.password = fmt.Sprintf("%04d", binary.LittleEndian.Uint32(b) % 10000)
-	fmt.Println("Generated new passcode:", a.password)
+	a.password = fmt.Sprintf("%04d", binary.LittleEndian.Uint32(b)%10000)
+	logger.Infof("Generated new passcode:", a.password)
 }
 
 func (a *OneTimeAuthHandler) GetUsername() string {

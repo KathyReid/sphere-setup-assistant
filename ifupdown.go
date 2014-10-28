@@ -26,7 +26,7 @@ func (im *InterfaceManager) execCmd(cmd string, arg string) {
 	im.cmd = exec.Command(cmd, arg)
 	go func() {
 		out, _ := im.cmd.CombinedOutput()
-		logger.Debugf("cmd returned with:", out)
+		logger.Debugf("cmd returned with: %s", string(out))
 		im.cmd = nil
 
 		im.cmdReady <- true
