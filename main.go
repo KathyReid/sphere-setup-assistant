@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/juju/loggo"
+	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/paypal/gatt"
 )
 
@@ -16,7 +16,7 @@ const WirelessStaleTimeout = time.Second * 30 // FIXME: INCREASE THIS. a few min
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
 
-var logger = loggo.GetLogger("sphere-setup")
+var logger = nlog.GetLogger("sphere-setup")
 
 func main() {
 	// ap0 adhoc/hostap management
