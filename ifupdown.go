@@ -1,9 +1,6 @@
 package main
 
-import (
-	"log"
-	"os/exec"
-)
+import "os/exec"
 
 type InterfaceManager struct {
 	iface    string
@@ -29,7 +26,7 @@ func (im *InterfaceManager) execCmd(cmd string, arg string) {
 	im.cmd = exec.Command(cmd, arg)
 	go func() {
 		out, _ := im.cmd.CombinedOutput()
-		log.Println("cmd returned with:", out)
+		logger.Debugf("cmd returned with: %s", string(out))
 		im.cmd = nil
 
 		im.cmdReady <- true
@@ -37,9 +34,11 @@ func (im *InterfaceManager) execCmd(cmd string, arg string) {
 }
 
 func (im *InterfaceManager) Up() {
+	logger.Debugf("running ifup")
 	im.execCmd("/sbin/ifup", im.iface)
 }
 
 func (im *InterfaceManager) Down() {
+	logger.Debugf("running ifdown")
 	im.execCmd("/sbin/ifdown", im.iface)
 }

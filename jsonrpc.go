@@ -1,9 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "encoding/json"
 
 type JSONRPCError struct {
 	Code    int         `json:"code"`
@@ -46,7 +43,7 @@ func (r *JSONRPCRouter) Call(request JSONRPCRequest) chan JSONRPCResponse {
 		jerr := &JSONRPCError{-32601, "Method not found", nil}
 		err_resp := JSONRPCResponse{"2.0", request.Id, nil, jerr}
 		response <- err_resp
-		fmt.Printf("Method not found: %v\n", err_resp)
+		logger.Debugf("Method not found: %v", err_resp)
 		return response
 	}
 	return f(request)
@@ -56,9 +53,9 @@ func (r *JSONRPCRouter) CallRaw(request []byte) chan []byte {
 	var jrequest JSONRPCRequest
 	err := json.Unmarshal(request, &jrequest)
 	var response chan JSONRPCResponse
-	fmt.Printf("Data request: %v\n", string(request))
+	logger.Debugf("Data request: %v", string(request))
 	if err != nil {
-		fmt.Printf("Parse error: %v\n", err)
+		logger.Debugf("Parse error: %v", err)
 		response = make(chan JSONRPCResponse, 1)
 		jerr := &JSONRPCError{-32700, "Parse error", nil}
 		thing := JSONRPCResponse{"2.0", jrequest.Id, nil, jerr}
@@ -69,7 +66,7 @@ func (r *JSONRPCRouter) CallRaw(request []byte) chan []byte {
 	bytes_response := make(chan []byte, 1)
 	go func() {
 		to_marshal := <-response
-		fmt.Printf("About to marshal and send response: %v\n", to_marshal)
+		logger.Debugf("About to marshal and send response: %v", to_marshal)
 		bytes, _ := json.Marshal(to_marshal)
 		bytes_response <- bytes
 	}()

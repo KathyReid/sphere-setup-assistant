@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/theojulienne/go-wireless/iwlib"
 	"os/exec"
-	"log"
+
+	"github.com/theojulienne/go-wireless/iwlib"
 )
 
 type WifiNetwork struct {
@@ -13,7 +13,7 @@ type WifiNetwork struct {
 
 type WifiCredentials struct {
 	SSID string `json:"ssid"`
-	Key string `json:"key"`
+	Key  string `json:"key"`
 }
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
@@ -21,7 +21,7 @@ const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
-	rpc_router.AddHandler("sphere.setup.ping", func (request JSONRPCRequest) chan JSONRPCResponse {
+	rpc_router.AddHandler("sphere.setup.ping", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
 
 		pong := JSONRPCResponse{"2.0", request.Id, 1234, nil}
@@ -30,12 +30,12 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		return resp
 	})
 
-	rpc_router.AddHandler("sphere.setup.get_visible_wifi_networks", func (request JSONRPCRequest) chan JSONRPCResponse {
+	rpc_router.AddHandler("sphere.setup.get_visible_wifi_networks", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
 
 		// Before we search for wifi networks, disable any that are try-fail-ing
 		wifi_manager.DisableAllNetworks()
-		
+
 		networks, err := iwlib.GetWirelessNetworks("wlan0")
 		if err == nil {
 			wifi_networks := make([]WifiNetwork, len(networks))
@@ -51,26 +51,26 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		return resp
 	})
 
-	rpc_router.AddHandler("sphere.setup.connect_wifi_network", func (request JSONRPCRequest) chan JSONRPCResponse {
+	rpc_router.AddHandler("sphere.setup.connect_wifi_network", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
 
 		wifi_creds := new(WifiCredentials)
 		b, _ := json.Marshal(request.Params[0])
 		json.Unmarshal(b, wifi_creds)
 
-		log.Println("Got wifi credentials", wifi_creds)
+		logger.Debugf("Got wifi credentials %v", wifi_creds)
 
 		go func() {
 			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
-			
+
 			states := wifi_manager.WatchState()
 
 			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
 			wifi_manager.Controller.ReloadConfiguration()
-			
+
 			success := true
 			for {
-				state := <- states
+				state := <-states
 				if state == WifiStateConnected {
 					success = true
 					break
@@ -81,13 +81,13 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 			}
 
 			wifi_manager.UnwatchState(states)
-			
+
 			if success {
 				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
 				if err != nil {
 					// ow ow ow
 				}
-				
+
 				pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
 				resp <- pong
 			} else {

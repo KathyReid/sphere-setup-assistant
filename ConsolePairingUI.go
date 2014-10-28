@@ -45,12 +45,12 @@ func (c *ControlChecker) StartHeartbeat() {
 			c.state = rpcStateAwaitingResponse
 			defer func() { c.state = rpcStateIdle }()
 
-			log.Printf("Sending heartbeat at", t)
+			logger.Debugf("Sending heartbeat at %s", t)
 
 			err := c.pairingUI.EnableControl()
 
 			if err != nil {
-				log.Printf("Failed to send enable", err)
+				logger.Errorf("Failed to send enable %s", err)
 			}
 		}
 	}()
@@ -94,7 +94,7 @@ func NewConsolePairingUI() (*ConsolePairingUI, error) {
 func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
-	fmt.Printf(" *** COLOR HINT: %s ***\n", color)
+	logger.Debugf(" *** COLOR HINT: %s ***", color)
 
 	err := ui.sendRpcRequest("displayColor", map[string]string{
 		"color": color,
@@ -112,7 +112,7 @@ func (ui *ConsolePairingUI) DisplayColorHint(color string) error {
 func (ui *ConsolePairingUI) DisplayPairingCode(code string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"code":"1234"}],"jsonrpc": "2.0","method":"displayPairingCode","time":132123123}' -t '$node/:node/led-controller'
 
-	fmt.Printf(" *** PAIRING CODE: %s ***\n", code)
+	logger.Debugf(" *** PAIRING CODE: %s ***", code)
 
 	err := ui.sendRpcRequest("displayPairingCode", map[string]string{
 		"code": code,
@@ -135,7 +135,7 @@ func (ui *ConsolePairingUI) EnableControl() error {
 		return err
 	}
 
-	fmt.Printf(" *** ENABLE CONTROL***\n")
+	logger.Debugf(" *** ENABLE CONTROL***")
 
 	return nil
 }
@@ -144,7 +144,7 @@ func (ui *ConsolePairingUI) EnableControl() error {
 func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"icon":"weather.png"}],"jsonrpc": "2.0","method":"displayIcon","time":132123123}' -t '$node/SLC6M6GIPGQAK/led-controller'
 
-	fmt.Printf(" *** DISPLAY ICON: %s ***\n", icon)
+	logger.Debugf(" *** DISPLAY ICON: %s ***", icon)
 
 	err := ui.sendRpcRequest("displayIcon", map[string]string{
 		"icon": icon,

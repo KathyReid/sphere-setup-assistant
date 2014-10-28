@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"io"
+	"os"
 )
 
 func WriteToFile(filename string, contents string) error {

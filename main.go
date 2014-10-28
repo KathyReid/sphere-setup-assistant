@@ -1,28 +1,31 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
-	"flag"
 
+	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/paypal/gatt"
 )
 
 const WirelessNetworkInterface = "wlan0"
 
 // consider the wifi to be invalid after this timeout
-const WirelessStaleTimeout = time.Second * 10 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
+const WirelessStaleTimeout = time.Second * 30 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
+
+var logger = nlog.GetLogger("sphere-setup")
 
 func main() {
 	// ap0 adhoc/hostap management
 	config := LoadConfig("/etc/opt/ninja/setup-assistant.conf")
 	apManager := NewAccessPointManager(config)
-	
+
 	flag.Parse()
-	if (*firewallHook) {
-		log.Println("Setting ip firewall rules...")
+	if *firewallHook {
+		logger.Debugf("Setting ip firewall rules...")
 		apManager.SetupFirewall()
 		return
 	}
@@ -80,16 +83,16 @@ func main() {
 	wifi_manager.Controller.ReloadConfiguration()
 
 	handleBadWireless := func() {
-		log.Println("Wireless is stale! Invalid SSID, router down, or not in range.")
+		logger.Warningf("Wireless is stale! Invalid SSID, router down, or not in range.")
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
-			log.Println("Launching BLE pairing assistant...")
+			logger.Debugf("Launching BLE pairing assistant...")
 			go srv.AdvertiseAndServe()
 
 			// and if the hostap isn't normally active, make it active
 			if !config.Wireless_Host.Always_Active {
-				log.Println("Launching AdHoc pairing assistant...")
+				logger.Debugf("Launching AdHoc pairing assistant...")
 				apManager.StartHostAP()
 			}
 		}
@@ -108,7 +111,7 @@ func main() {
 
 	for {
 		state := <-states
-		log.Println("State:", state)
+		logger.Debugf("State: %v", state)
 
 		switch state {
 		case WifiStateConnected:
@@ -116,8 +119,9 @@ func main() {
 				wireless_stale.Stop()
 			}
 			wireless_stale = nil
+			// FIXME: i think this should return some sort of channel to wait for completion of the process
 			iman.Up()
-			log.Println("Connected and attempting to get IP.")
+			logger.Debugf("Connected and attempting to get IP.")
 
 			if !config.Wireless_Host.Enables_Control {
 				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
@@ -130,12 +134,13 @@ func main() {
 
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {
-					log.Println("Terminating AdHoc pairing assistant.")
+					logger.Debugf("Terminating AdHoc pairing assistant.")
 					apManager.StopHostAP()
 				}
 			}
 
 		case WifiStateDisconnected:
+			// FIXME: i think this should return some sort of channel to wait for completion of the process
 			iman.Down()
 			if wireless_stale == nil {
 				wireless_stale = time.AfterFunc(WirelessStaleTimeout, handleBadWireless)
@@ -154,7 +159,7 @@ func main() {
 				}
 				wireless_stale = nil*/
 
-				log.Println("Wireless key is invalid!")
+				logger.Warningf("Wireless key is invalid!")
 			}
 		}
 	}

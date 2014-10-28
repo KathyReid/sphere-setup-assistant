@@ -1,17 +1,18 @@
 package main
 
 import (
-	"code.google.com/p/gcfg"
 	"os/exec"
+
+	"code.google.com/p/gcfg"
 )
 
 type AssistantConfig struct {
 	Wireless_Host struct {
-		SSID string
-		Key string
+		SSID                string
+		Key                 string
 		Full_Network_Access bool
-		Always_Active bool
-		Enables_Control bool
+		Always_Active       bool
+		Enables_Control     bool
 	}
 }
 
@@ -25,10 +26,9 @@ func LoadConfig(path string) AssistantConfig {
 	cfg.Wireless_Host.Full_Network_Access = false
 	cfg.Wireless_Host.Always_Active = false
 	cfg.Wireless_Host.Enables_Control = false
-	
+
 	// load from config file (optionally)
 	gcfg.ReadFileInto(&cfg, path)
-	
+
 	return cfg
 }
-
