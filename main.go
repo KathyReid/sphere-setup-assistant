@@ -12,7 +12,7 @@ import (
 const WirelessNetworkInterface = "wlan0"
 
 // consider the wifi to be invalid after this timeout
-const WirelessStaleTimeout = time.Second * 10 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
+const WirelessStaleTimeout = time.Second * 30 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
 
@@ -111,7 +111,7 @@ func main() {
 
 	for {
 		state := <-states
-		logger.Debugf("State: %s", state)
+		logger.Debugf("State: %v", state)
 
 		switch state {
 		case WifiStateConnected:
@@ -119,6 +119,7 @@ func main() {
 				wireless_stale.Stop()
 			}
 			wireless_stale = nil
+			// FIXME: i think this should return some sort of channel to wait for completion of the process
 			iman.Up()
 			logger.Debugf("Connected and attempting to get IP.")
 
@@ -139,6 +140,7 @@ func main() {
 			}
 
 		case WifiStateDisconnected:
+			// FIXME: i think this should return some sort of channel to wait for completion of the process
 			iman.Down()
 			if wireless_stale == nil {
 				wireless_stale = time.AfterFunc(WirelessStaleTimeout, handleBadWireless)

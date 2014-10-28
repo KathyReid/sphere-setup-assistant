@@ -1,19 +1,16 @@
 package main
 
-import (
-	"github.com/theojulienne/go-wireless/wpactl"
-	"log"
-)
+import "github.com/theojulienne/go-wireless/wpactl"
 
 type WifiManager struct {
-	Controller *wpactl.WPAController
+	Controller  *wpactl.WPAController
 	stateChange []chan string
 }
 
 const (
 	WifiStateDisconnected = "disconnected"
-	WifiStateConnected = "connected"
-	WifiStateInvalidKey = "invalid_key"
+	WifiStateConnected    = "connected"
+	WifiStateInvalidKey   = "invalid_key"
 )
 
 func NewWifiManager(iface string) (*WifiManager, error) {
@@ -31,7 +28,7 @@ func NewWifiManager(iface string) (*WifiManager, error) {
 	return manager, nil
 }
 
-func (m *WifiManager) WatchState() (chan string) {
+func (m *WifiManager) WatchState() chan string {
 	ch := make(chan string, 128)
 
 	m.stateChange = append(m.stateChange, ch)
@@ -40,7 +37,7 @@ func (m *WifiManager) WatchState() (chan string) {
 }
 
 func (m *WifiManager) UnwatchState(target chan string) {
-	for i,c := range m.stateChange {
+	for i, c := range m.stateChange {
 		if c == target {
 			m.stateChange[i] = nil
 		}
@@ -48,7 +45,7 @@ func (m *WifiManager) UnwatchState(target chan string) {
 }
 
 func (m *WifiManager) emitState(state string) {
-	for _,ch := range m.stateChange {
+	for _, ch := range m.stateChange {
 		if ch != nil {
 			ch <- state
 		}
@@ -57,15 +54,15 @@ func (m *WifiManager) emitState(state string) {
 
 func (m *WifiManager) eventLoop() {
 	for {
-		event := <- m.Controller.EventChannel
-		log.Println(event)
+		event := <-m.Controller.EventChannel
+		logger.Debugf("process: %v", event)
 		switch event.Name {
-			case "CTRL-EVENT-DISCONNECTED":
-				m.emitState(WifiStateDisconnected)
-			case "CTRL-EVENT-CONNECTED":
-				m.emitState(WifiStateConnected)
-			case "CTRL-EVENT-SSID-TEMP-DISABLED":
-				m.emitState(WifiStateInvalidKey)
+		case "CTRL-EVENT-DISCONNECTED":
+			m.emitState(WifiStateDisconnected)
+		case "CTRL-EVENT-CONNECTED":
+			m.emitState(WifiStateConnected)
+		case "CTRL-EVENT-SSID-TEMP-DISABLED":
+			m.emitState(WifiStateInvalidKey)
 		}
 	}
 }
@@ -80,30 +77,30 @@ func (m *WifiManager) WifiConfigured() (bool, error) {
 		return false, nil
 	}
 	enabledNetworks := 0
-	for _,network := range networks {
+	for _, network := range networks {
 		result, _ := m.Controller.GetNetworkSetting(network.Id, "disabled")
 		if result == "1" {
 			continue
 		}
-		enabledNetworks += 1
+		enabledNetworks++
 	}
 	return (enabledNetworks > 0), nil
 }
 
-func (m *WifiManager) DisableAllNetworks() (error) {
+func (m *WifiManager) DisableAllNetworks() error {
 	networks, err := m.Controller.ListNetworks()
 	if err != nil {
 		return err
 	}
 
-	for _,network := range networks {
+	for _, network := range networks {
 		m.Controller.DisableNetwork(network.Id)
 	}
 
 	return nil
 }
 
-func (m *WifiManager) AddStandardNetwork(ssid string, key string) (error) {
+func (m *WifiManager) AddStandardNetwork(ssid string, key string) error {
 	i, err := m.Controller.AddNetwork()
 	if err != nil {
 		return err
@@ -118,5 +115,3 @@ func (m *WifiManager) AddStandardNetwork(ssid string, key string) (error) {
 
 	return nil
 }
-
-
