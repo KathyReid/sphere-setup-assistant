@@ -1,10 +1,11 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
-	"flag"
 
+	"github.com/juju/loggo"
 	"github.com/paypal/gatt"
 )
 
@@ -15,13 +16,15 @@ const WirelessStaleTimeout = time.Second * 10 // FIXME: INCREASE THIS. a few min
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
 
+var logger = loggo.GetLogger("sphere-setup")
+
 func main() {
 	// ap0 adhoc/hostap management
 	config := LoadConfig("/etc/opt/ninja/setup-assistant.conf")
 	apManager := NewAccessPointManager(config)
-	
+
 	flag.Parse()
-	if (*firewallHook) {
+	if *firewallHook {
 		log.Println("Setting ip firewall rules...")
 		apManager.SetupFirewall()
 		return
