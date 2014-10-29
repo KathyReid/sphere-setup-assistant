@@ -25,7 +25,10 @@ func (im *InterfaceManager) execCmd(cmd string, arg string) {
 
 	im.cmd = exec.Command(cmd, arg)
 	go func() {
-		out, _ := im.cmd.CombinedOutput()
+		out, err := im.cmd.CombinedOutput()
+		if err != nil {
+			logger.Errorf("error occured running %s : %s", cmd, err)
+		}
 		logger.Debugf("cmd returned with: %s", string(out))
 		im.cmd = nil
 

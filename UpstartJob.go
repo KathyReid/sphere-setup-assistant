@@ -10,6 +10,7 @@ type UpstartJob struct {
 }
 
 func (j *UpstartJob) Status() (string, error) {
+	logger.Debugf("Get upstart job status for %s", j.Name)
 	out, err := exec.Command("/sbin/status", j.Name).Output()
 	if err != nil {
 		parts := strings.Split(string(out), " ")
@@ -20,6 +21,7 @@ func (j *UpstartJob) Status() (string, error) {
 }
 
 func (j *UpstartJob) Running() (bool, error) {
+	logger.Debugf("Running upstart job for %s", j.Name)
 	status, err := j.Status()
 	if err != nil {
 		running := (status == "start/running")
