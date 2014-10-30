@@ -38,7 +38,6 @@ func main() {
 	}
 
 	// wlan0 client management
-	iman := NewInterfaceManager(WirelessNetworkInterface)
 	wifi_manager, err := NewWifiManager(WirelessNetworkInterface)
 	if err != nil {
 		log.Fatal("Could not setup manager for wlan0, does the interface exist?")
@@ -111,7 +110,7 @@ func main() {
 
 	for {
 		state := <-states
-		logger.Debugf("State: %v", state)
+		logger.Infof("State: %v", state)
 
 		switch state {
 		case WifiStateConnected:
@@ -119,9 +118,7 @@ func main() {
 				wireless_stale.Stop()
 			}
 			wireless_stale = nil
-			// FIXME: i think this should return some sort of channel to wait for completion of the process
-			iman.Up()
-			logger.Debugf("Connected and attempting to get IP.")
+			logger.Infof("Connected and attempting to get IP.")
 
 			if !config.Wireless_Host.Enables_Control {
 				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
@@ -134,14 +131,12 @@ func main() {
 
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {
-					logger.Debugf("Terminating AdHoc pairing assistant.")
+					logger.Infof("Terminating AdHoc pairing assistant.")
 					apManager.StopHostAP()
 				}
 			}
 
 		case WifiStateDisconnected:
-			// FIXME: i think this should return some sort of channel to wait for completion of the process
-			iman.Down()
 			if wireless_stale == nil {
 				wireless_stale = time.AfterFunc(WirelessStaleTimeout, handleBadWireless)
 			}
