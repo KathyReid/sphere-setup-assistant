@@ -35,23 +35,8 @@ func (c *ControlChecker) StartHeartbeat() {
 
 	go func() {
 		for t := range c.ticker.C {
-			// are we in call
-			if c.state == rpcStateAwaitingResponse {
-				// if so skip this request
-				return
-			}
-
-			// otherwise preseed
-			c.state = rpcStateAwaitingResponse
-			defer func() { c.state = rpcStateIdle }()
-
 			logger.Debugf("Sending heartbeat at %s", t)
-
-			err := c.pairingUI.EnableControl()
-
-			if err != nil {
-				logger.Errorf("Failed to send enable %s", err)
-			}
+			c.enableControl()
 		}
 	}()
 
@@ -66,6 +51,30 @@ func (c *ControlChecker) StopHeartbeat() {
 
 		// TODO check if ticker was running and send DisableControl
 	}
+
+}
+
+func (c *ControlChecker) enableControl() {
+
+	// are we in call
+	if c.state == rpcStateAwaitingResponse {
+		// if so skip this request
+		return
+	}
+
+	// otherwise preseed
+	c.state = rpcStateAwaitingResponse
+	defer func() {
+		logger.Debugf("reset heartbeat state to IDLE")
+		c.state = rpcStateIdle
+	}()
+
+	err := c.pairingUI.EnableControl()
+
+	if err != nil {
+		logger.Errorf("Failed to send enable %s", err)
+	}
+	logger.Debugf("Heartbeat complete")
 
 }
 
