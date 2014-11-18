@@ -92,7 +92,6 @@ func (r *resetButton) run() {
 						r.onTick(r.current.delay())
 					}
 				} else if contents == "1" {
-					delay = time.Second
 					if down {
 						down = false
 						r.onUp()
