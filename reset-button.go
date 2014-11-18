@@ -72,7 +72,6 @@ func startResetMonitor(callback func(m *model.ResetMode)) {
 }
 
 func (r *resetButton) run() {
-	delay := longDelay
 	down := false
 	for {
 		if reset, err := os.Open("/sys/class/gpio/gpio20/value"); err != nil {
