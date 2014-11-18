@@ -29,8 +29,20 @@ func main() {
 		apManager.SetupFirewall()
 		return
 	}
+	var pairing_ui *ConsolePairingUI
+	var controlChecker *ControlChecker
 
-	startResetMonitor()
+	startResetMonitor(func(m *model.ResetMode) {
+		if pairing_ui == nil || controlChecker == nil {
+			return
+		}
+		if m.Mode == "none" {
+			controlChecker.StartHeartbeat()
+		} else {
+			controlChecker.StopHeartbeat()
+			pairing_ui.DisplayResetMode(m)
+		}
+	})
 
 	apManager.WriteAPConfig()
 	if config.Wireless_Host.Always_Active {
@@ -55,13 +67,12 @@ func main() {
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")
 
-	pairing_ui, err := NewConsolePairingUI()
-
+	pairing_ui, err = NewConsolePairingUI()
 	if err != nil {
 		log.Fatal("Could not setup ninja connection")
 	}
 
-	controlChecker := NewControlChecker(pairing_ui)
+	controlChecker = NewControlChecker(pairing_ui)
 
 	RegisterSecuredRPCService(srv, rpc_router, auth_handler, pairing_ui)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -19,8 +20,9 @@ const (
 )
 
 type resetButton struct {
-	current state
-	mode    string
+	current  state
+	mode     string
+	callback func(m *model.ResetMode)
 }
 
 type state interface {
@@ -60,10 +62,11 @@ type state4 struct {
 	baseState
 }
 
-func startResetMonitor() {
+func startResetMonitor(callback func(m *model.ResetMode)) {
 	r := &resetButton{
-		current: &state0{},
-		mode:    "none",
+		current:  &state0{},
+		mode:     "none",
+		callback: callback,
 	}
 	go r.run()
 }
@@ -145,6 +148,20 @@ func (r *resetButton) commit() {
 	if err := exec.Command("/opt/ninjablocks/bin/reset-helper.sh", r.mode).Run(); err != nil {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
 	}
+	callback(&model.ResetMode{
+		mode:     r.mode,
+		hold:     false,
+		duration: gracePeriod,
+	})
+}
+
+func (r *resetButton) updateMode(mode string) {
+	r.mode = mode
+	callback(&model.ResetMode{
+		mode:     r.mode,
+		hold:     true,
+		duration: 0,
+	})
 }
 
 //
@@ -173,7 +190,7 @@ func (s *baseState) delay() time.Duration {
 // state0 is the reset state
 
 func (s *state0) onDown(r *resetButton) state {
-	r.mode = "reboot"
+	r.updateMode("reboot")
 	return &state1{
 		baseState: baseState{
 			ticks: 0,
@@ -198,7 +215,7 @@ func (s *state1) onUp(r *resetButton) state {
 func (s *state1) onTick(r *resetButton, ticks time.Duration) state {
 	s.baseState.onTick(r, ticks)
 	if s.baseState.ticks > resetUserDataPress {
-		r.mode = "reset-userdata"
+		r.updateMode("reset-userdata")
 		return &state2{
 			baseState: baseState{
 				ticks: s.baseState.ticks,
@@ -220,7 +237,7 @@ func (s *state2) onUp(r *resetButton) state {
 func (s *state2) onTick(r *resetButton, ticks time.Duration) state {
 	s.baseState.onTick(r, ticks)
 	if s.baseState.ticks > resetRootPress {
-		r.mode = "reset-root"
+		r.updateMode("reset-root")
 		return &state3{
 			baseState: baseState{
 				ticks: s.baseState.ticks,
@@ -241,7 +258,7 @@ func (s *state3) onUp(r *resetButton) state {
 
 // reset root reboot
 func (s *state4) onDown(r *resetButton) state {
-	r.mode = "none"
+	r.updateMode("none")
 	return &state0{}
 }
 
