@@ -149,18 +149,18 @@ func (r *resetButton) commit() {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
 	}
 	callback(&model.ResetMode{
-		mode:     r.mode,
-		hold:     false,
-		duration: gracePeriod,
+		Mode:     r.mode,
+		Hold:     false,
+		Duration: gracePeriod,
 	})
 }
 
 func (r *resetButton) updateMode(mode string) {
 	r.mode = mode
 	callback(&model.ResetMode{
-		mode:     r.mode,
-		hold:     true,
-		duration: 0,
+		Mode:     r.mode,
+		Hold:     true,
+		Duration: 0,
 	})
 }
 
