@@ -90,7 +90,7 @@ func (r *resetButton) run() {
 						down = true
 						r.onDown()
 					} else {
-						r.onTick(delay)
+						r.onTick(r.current.delay())
 					}
 				} else if contents == "1" {
 					delay = time.Second
@@ -98,7 +98,7 @@ func (r *resetButton) run() {
 						down = false
 						r.onUp()
 					} else {
-						r.onTick(delay)
+						r.onTick(r.current.delay())
 					}
 				} else {
 					logger.Warningf("unexpected input from button %s", contents)
