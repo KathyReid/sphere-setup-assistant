@@ -30,6 +30,8 @@ func main() {
 		return
 	}
 
+	startResetMonitor()
+
 	apManager.WriteAPConfig()
 	if config.Wireless_Host.Always_Active {
 		apManager.StartHostAP()
