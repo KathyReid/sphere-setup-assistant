@@ -8,6 +8,7 @@ import (
 
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
+	"github.com/ninjasphere/sphere-go-led-controller/model"
 )
 
 const (
@@ -165,7 +166,26 @@ func (ui *ConsolePairingUI) DisplayIcon(icon string) error {
 
 	return nil
 }
+
+func (ui *ConsolePairingUI) DisplayResetMode(m *model.ResetMode) error {
+
+	logger.Debugf(" *** DISPLAY RESET MODE: %v ***", m)
+
+	err := ui.sendMarshaledRpcRequest("displayIcon", m)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ui *ConsolePairingUI) sendRpcRequest(method string, payload map[string]string) error {
 	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
 	return ui.conn.GetServiceClient(topic).Call(method, []interface{}{payload}, nil, 15*time.Second)
+}
+
+func (ui *ConsolePairingUI) sendMarshaledRpcRequest(method string, payload interface{}) error {
+	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
+	return ui.conn.GetServiceClient(topic).Call(method, payload, nil, 15*time.Second)
 }
