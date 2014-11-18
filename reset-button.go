@@ -148,7 +148,7 @@ func (r *resetButton) commit() {
 	if err := exec.Command("/opt/ninjablocks/bin/reset-helper.sh", r.mode).Run(); err != nil {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
 	}
-	callback(&model.ResetMode{
+	r.callback(&model.ResetMode{
 		Mode:     r.mode,
 		Hold:     false,
 		Duration: gracePeriod,
@@ -157,7 +157,7 @@ func (r *resetButton) commit() {
 
 func (r *resetButton) updateMode(mode string) {
 	r.mode = mode
-	callback(&model.ResetMode{
+	r.callback(&model.ResetMode{
 		Mode:     r.mode,
 		Hold:     true,
 		Duration: 0,
