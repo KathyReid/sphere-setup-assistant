@@ -171,7 +171,7 @@ func (ui *ConsolePairingUI) DisplayResetMode(m *model.ResetMode) error {
 
 	logger.Debugf(" *** DISPLAY RESET MODE: %v ***", m)
 
-	err := ui.sendMarshaledRpcRequest("displayIcon", m)
+	err := ui.sendMarshaledRpcRequest("displayResetMode", m)
 
 	if err != nil {
 		return err
