@@ -6,6 +6,7 @@ import (
 	"time"
 
 	nlog "github.com/ninjasphere/go-ninja/logger"
+	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/paypal/gatt"
 )
 
