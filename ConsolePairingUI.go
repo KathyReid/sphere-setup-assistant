@@ -43,14 +43,17 @@ func (c *ControlChecker) StartHeartbeat() {
 
 }
 
-func (c *ControlChecker) StopHeartbeat() {
+func (c *ControlChecker) StopHeartbeat() bool {
 	c.Lock()
 	defer c.Unlock()
 
 	if c.ticker != nil {
 		c.ticker.Stop()
+		return true
 
 		// TODO check if ticker was running and send DisableControl
+	} else {
+		return false
 	}
 
 }
