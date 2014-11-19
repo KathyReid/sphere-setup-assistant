@@ -14,8 +14,8 @@ import (
 const (
 	shortDelay         = time.Millisecond * time.Duration(100)
 	longDelay          = time.Second
-	resetUserDataPress = time.Second * time.Duration(5)
-	resetRootPress     = time.Second * time.Duration(10)
+	resetUserDataPress = time.Second * time.Duration(2)
+	resetRootPress     = time.Second * time.Duration(5)
 	gracePeriod        = time.Second * time.Duration(5)
 )
 
