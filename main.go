@@ -33,14 +33,19 @@ func main() {
 	var pairing_ui *ConsolePairingUI
 	var controlChecker *ControlChecker
 
+	restartHeartbeat := false
+
 	startResetMonitor(func(m *model.ResetMode) {
 		if pairing_ui == nil || controlChecker == nil {
 			return
 		}
 		if m.Mode == "none" {
-			controlChecker.StartHeartbeat()
+			if restartHeartbeat {
+				// only restart the heartbeat if we stopped it previously
+				controlChecker.StartHeartbeat()
+			}
 		} else {
-			controlChecker.StopHeartbeat()
+			restartHeartbeat = controlChecker.StopHeartbeat()
 			pairing_ui.DisplayResetMode(m)
 		}
 	})
