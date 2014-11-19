@@ -14,9 +14,9 @@ import (
 const (
 	shortDelay         = time.Millisecond * time.Duration(100)
 	longDelay          = time.Second
-	resetUserDataPress = time.Second * time.Duration(2)
-	resetRootPress     = time.Second * time.Duration(5)
-	gracePeriod        = time.Second * time.Duration(5)
+	resetUserDataPress = time.Second * time.Duration(3)
+	resetRootPress     = time.Second * time.Duration(6)
+	gracePeriod        = time.Second * time.Duration(3)
 )
 
 type resetButton struct {
@@ -146,11 +146,6 @@ func (r *resetButton) commit() {
 	if err := exec.Command("/opt/ninjablocks/bin/reset-helper.sh", r.mode).Run(); err != nil {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
 	}
-	r.callback(&model.ResetMode{
-		Mode:     r.mode,
-		Hold:     false,
-		Duration: gracePeriod,
-	})
 }
 
 func (r *resetButton) updateMode(mode string) {
@@ -160,6 +155,20 @@ func (r *resetButton) updateMode(mode string) {
 		Hold:     true,
 		Duration: 0,
 	})
+}
+
+func (r *resetButton) countDown(duration time.Duration) state {
+	r.callback(&model.ResetMode{
+		Mode:     r.mode,
+		Hold:     false,
+		Duration: duration,
+	})
+
+	return &state4{
+		baseState: baseState{
+			ticks: duration,
+		},
+	}
 }
 
 //
@@ -202,11 +211,7 @@ func (s *state0) delay() time.Duration {
 
 // simple reboot
 func (s *state1) onUp(r *resetButton) state {
-	return &state4{
-		baseState: baseState{
-			ticks: 1,
-		},
-	}
+	return r.countDown(time.Second)
 }
 
 // after 5 ticks
@@ -225,11 +230,7 @@ func (s *state1) onTick(r *resetButton, ticks time.Duration) state {
 
 // reset user-data reboot
 func (s *state2) onUp(r *resetButton) state {
-	return &state4{
-		baseState: baseState{
-			ticks: gracePeriod,
-		},
-	}
+	return r.countDown(gracePeriod)
 }
 
 func (s *state2) onTick(r *resetButton, ticks time.Duration) state {
@@ -247,11 +248,7 @@ func (s *state2) onTick(r *resetButton, ticks time.Duration) state {
 
 // reset root reboot
 func (s *state3) onUp(r *resetButton) state {
-	return &state4{
-		baseState: baseState{
-			ticks: gracePeriod,
-		},
-	}
+	return r.countDown(gracePeriod)
 }
 
 // reset root reboot
