@@ -105,12 +105,12 @@ func main() {
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
-			logger.Debugf("Launching BLE pairing assistant...")
+			logger.Infof("Launching BLE pairing assistant...")
 			go srv.AdvertiseAndServe()
 
 			// and if the hostap isn't normally active, make it active
 			if !config.Wireless_Host.Always_Active {
-				logger.Debugf("Launching AdHoc pairing assistant...")
+				logger.Infof("Launching AdHoc pairing assistant...")
 				apManager.StartHostAP()
 			}
 		}
