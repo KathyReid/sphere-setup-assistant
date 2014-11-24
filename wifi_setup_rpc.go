@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"time"
 
-	"github.com/theojulienne/go-wireless/iwlib"
+	"github.com/elliots/go-wireless/iwlib"
+	"github.com/ninjasphere/go-ninja/api"
+	"github.com/ninjasphere/go-ninja/config"
 )
 
 type WifiNetwork struct {
@@ -19,6 +23,7 @@ type WifiCredentials struct {
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
 func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
+
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
 	rpc_router.AddHandler("sphere.setup.ping", func(request JSONRPCRequest) chan JSONRPCResponse {
@@ -94,6 +99,46 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Could not connect to specified WiFi network, is the key correct?", nil}}
 			}
 		}()
+
+		return resp
+	})
+
+	conn, err := ninja.Connect("sphere-setup-assistant")
+
+	if err != nil {
+		logger.FatalErrorf(err, "Failed to connect to mqtt")
+	}
+
+	updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
+
+	rpc_router.AddHandler("sphere.setup.start_update", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+
+		var response json.RawMessage
+
+		err := updateService.Call("start", nil, &response, time.Second*10)
+
+		if err == nil {
+			resp <- JSONRPCResponse{"2.0", request.Id, response, nil}
+		} else {
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
+
+		return resp
+	})
+
+	rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+
+		var response json.RawMessage
+
+		err := updateService.Call("getProgress", nil, &response, time.Second*10)
+
+		if err == nil {
+			resp <- JSONRPCResponse{"2.0", request.Id, response, nil}
+		} else {
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
 
 		return resp
 	})
