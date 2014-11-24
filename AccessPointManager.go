@@ -45,7 +45,7 @@ func (a *AccessPointManager) WriteAPConfig() {
 	s += "wpa_key_mgmt=WPA-PSK\n"
 	s += "wpa_pairwise=TKIP\n"
 	s += "rsn_pairwise=CCMP\n"
-	ioutil.WriteFile("/etc/hostapd-ap0.conf", []byte(s), 0600)
+	ioutil.WriteFile("/data/etc/hostapd-ap0.conf", []byte(s), 0600)
 }
 
 func (a *AccessPointManager) iptables(cmd ...string) {
