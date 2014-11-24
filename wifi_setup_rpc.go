@@ -103,7 +103,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		return resp
 	})
 
-	conn, err := ninja.Connect("sphere-setup-assistant")
+	conn, err := ninja.Connect("sphere-setup-assistant-updates")
 
 	if err != nil {
 		logger.FatalErrorf(err, "Failed to connect to mqtt")
