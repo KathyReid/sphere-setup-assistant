@@ -64,11 +64,24 @@ func main() {
 	}
 	defer wifi_manager.Cleanup()
 
+	srv := &gatt.Server{
+		Name: "ninjasphere",
+		Connect: func(c gatt.Conn) {
+			logger.Infof("BLE Connect")
+		},
+		Disconnect: func(c gatt.Conn) {
+			logger.Infof("BLE Disconnect")
+		},
+		StateChange: func(state string) {
+			logger.Infof("BLE State Change: %s", state)
+		},
+	}
+
 	// start by registering the RPC functions that will be accessible
 	// once the client has authenticated
-	rpc_router := GetSetupRPCRouter(wifi_manager)
-
-	srv := &gatt.Server{Name: "ninjasphere"}
+	// We pass in the ble server so that we can close the connection once the updates are installed
+	// (THIS SHOULD HAPPEN OVER WIFI INSTEAD!)
+	rpc_router := GetSetupRPCRouter(wifi_manager, srv)
 
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")
@@ -146,7 +159,10 @@ func main() {
 
 			if is_serving_pairer {
 				is_serving_pairer = false
-				srv.Close()
+
+				// We need to keep the server open for now, as we are sending update progress to it, and accepting
+				// led drawing messages. Later, this will be over wifi and we can close it here.
+				//srv.Close()
 
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {

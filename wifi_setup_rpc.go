@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/elliots/go-wireless/iwlib"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
+	"github.com/paypal/gatt"
 )
 
 type WifiNetwork struct {
@@ -22,7 +24,7 @@ type WifiCredentials struct {
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
-func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
+func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRouter {
 
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
@@ -139,6 +141,14 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
 		} else {
 			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
+
+		// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
+		if strings.Contains(string(response), `false`) {
+			go func() {
+				time.Sleep(time.Second * 5)
+				srv.Close()
+			}()
 		}
 
 		return resp
