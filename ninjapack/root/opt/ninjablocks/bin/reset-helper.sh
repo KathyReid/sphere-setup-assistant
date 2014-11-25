@@ -9,7 +9,7 @@ die() {
 setup() {
 	RECOVERY_IMAGE_DEVICE=${RECOVERY_IMAGE_DEVICE:-/dev/mmcblk0p4}
 
-	if mountpoint=$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}"); then
+	if mountpoint=$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}" /tmp/image); then
 		if test -f "$mountpoint/recovery.env.sh"; then
 			echo "info: found '$mountpoint/recovery.env.sh' - loading..." 1>&2
 			. "$mountpoint/recovery.env.sh"
@@ -28,12 +28,13 @@ mount_helper() {
 
 	cmd=$1
 	device=$2
-	mountpoint=${3:-/tmp/image}
+	mountpoint=$3
 	case "$cmd" in
 	mount-point)
 		df | tr -s ' ' | cut -f1,6 -d' ' | grep "^$device" | cut -f2 -d' '
 	;;
 	require-mounted)
+		test -n "$mountpoint" || die "usage: mount_helper require-mounted {device} {mountpoint}"
 		current=$(mount_helper mount-point "$device")
 
 		if test -z "$current"; then
@@ -138,11 +139,14 @@ image_from_mount_point() {
 # initiate the factory reset
 factory_reset() {
 	# check_time
+	export RECOVERY_PREFIX
+	export RECOVERY_IMAGE
+	export RECOVERY_SUFFIX
 
 	if recovery_script=$(download_recovery_script) && test -f "$recovery_script"; then
 		sh "$recovery_script" recovery-with-network
 	else
-		if ! mountpoint="$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}")"; then
+		if ! mountpoint="$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}" /tmp/image)"; then
 			die "unable to mount recovery image device: ${RECOVERY_IMAGE_DEVICE}"
 		else
 			RECOVERY_IMAGE=$(image_from_mount_point "$mountpoint")
