@@ -119,7 +119,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		err := updateService.Call("start", nil, &response, time.Second*10)
 
 		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, response, nil}
+			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
 		} else {
 			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
 		}
@@ -135,7 +135,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		err := updateService.Call("getProgress", nil, &response, time.Second*10)
 
 		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, response, nil}
+			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
 		} else {
 			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
 		}
