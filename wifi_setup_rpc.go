@@ -110,6 +110,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 	}
 
 	updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
+	ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
 
 	rpc_router.AddHandler("sphere.setup.start_update", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
@@ -133,6 +134,38 @@ func GetSetupRPCRouter(wifi_manager *WifiManager) *JSONRPCRouter {
 		var response json.RawMessage
 
 		err := updateService.Call("getProgress", nil, &response, time.Second*10)
+
+		if err == nil {
+			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
+		} else {
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
+
+		return resp
+	})
+
+	rpc_router.AddHandler("sphere.setup.display_drawing", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+
+		var response json.RawMessage
+
+		err := ledService.Call("displayDrawing", request.Params, &response, time.Second*10)
+
+		if err == nil {
+			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
+		} else {
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
+
+		return resp
+	})
+
+	rpc_router.AddHandler("sphere.setup.draw", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+
+		var response json.RawMessage
+
+		err := ledService.Call("draw", request.Params, &response, time.Second*10)
 
 		if err == nil {
 			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
