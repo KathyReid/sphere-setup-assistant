@@ -58,17 +58,8 @@ mount_helper() {
 url() {
 	id=$1
 	case "$id" in
-	protocol)
-		echo ${RECOVERY_PROTOCOL:-https}
-	;;
-	host)
-		echo ${RECOVERY_HOST:-firmware.sphere.ninja}
-	;;
-	port)
-		echo ${RECOVERY_PORT:+:}${RECOVERY_PORT}
-	;;
-	version)
-		echo ${RECOVERY_VERSION:-latest}
+	prefix)
+		echo ${RECOVERY_PREFIX:-https://firmware.sphere.ninja/latest}
 	;;
 	image)
 		echo ${RECOVERY_IMAGE:-ubuntu_armhf_trusty_release_sphere-stable}
@@ -77,7 +68,7 @@ url() {
 		echo ${RECOVERY_SUFFIX:--recovery}$2
 	;;
 	url)
-		echo $(url protocol)://$(url host)$(url port)/$(url version)/$(url image)$(url suffix "$2")
+		echo $(url prefix)/$(url image)$(url suffix "$2")
 	;;
 	esac
 }
