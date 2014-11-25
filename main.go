@@ -152,10 +152,10 @@ func main() {
 			wireless_stale = nil
 			logger.Infof("Connected and attempting to get IP.")
 
-			if !config.Wireless_Host.Enables_Control {
+			/*if !config.Wireless_Host.Enables_Control {
 				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
 				controlChecker.StartHeartbeat()
-			}
+			}*/
 
 			if is_serving_pairer {
 				is_serving_pairer = false
