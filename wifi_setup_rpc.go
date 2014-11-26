@@ -124,7 +124,11 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *
 
 		var response json.RawMessage
 
+		logger.Infof("Starting update id: %d. Waiting for response....", request.Id)
+
 		err := updateService.Call("start", nil, &response, time.Second*10)
+
+		logger.Infof("Got update start response: %d. %v", request.Id, response)
 
 		if err == nil {
 			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
@@ -140,7 +144,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *
 	updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
 		lastProgress = *progress
 
-		logger.Infof("Got update progress: %v", progress)
+		logger.Infof("Got update progress: %v", *progress)
 		return true
 	})
 
