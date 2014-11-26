@@ -97,19 +97,47 @@ type consolePairingUI struct {
 	serial string
 }
 
+type dummyConsolePairingUI struct {
+}
+
+func (*dummyConsolePairingUI) DisplayColorHint(color string) error {
+	return nil
+}
+
+func (*dummyConsolePairingUI) DisplayPairingCode(code string) error {
+	return nil
+}
+
+func (*dummyConsolePairingUI) EnableControl() error {
+	return nil
+}
+
+func (*dummyConsolePairingUI) DisplayIcon(icon string) error {
+	return nil
+}
+
+func (*dummyConsolePairingUI) DisplayResetMode(m *model.ResetMode) error {
+	return nil
+}
+
 // NewConsolePairingUI build a new console pairing ui
 func NewConsolePairingUI() (ConsolePairingUI, error) {
 
-	conn, err := ninja.Connect("sphere-setup-assistant")
+	if factoryReset {
+		return &dummyConsolePairingUI{}, nil
+	} else {
 
-	if err != nil {
-		log.Fatalf("Failed to connect to mqtt: %s", err)
+		conn, err := ninja.Connect("sphere-setup-assistant")
+
+		if err != nil {
+			log.Fatalf("Failed to connect to mqtt: %s", err)
+		}
+
+		return &consolePairingUI{
+			conn:   conn,
+			serial: config.Serial(),
+		}, nil
 	}
-
-	return &consolePairingUI{
-		conn:   conn,
-		serial: config.Serial(),
-	}, nil
 }
 
 // DisplayPairingCode makes an rpc call to the led-controller for displaying a color hint
