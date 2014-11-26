@@ -110,43 +110,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui C
 		return resp
 	})
 
-	conn, err := ninja.Connect("sphere-setup-assistant-updates")
-
-	if err != nil {
-		logger.FatalErrorf(err, "Failed to connect to mqtt")
-	}
-
-	updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
-	ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
-
-	rpc_router.AddHandler("sphere.setup.start_update", func(request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
-
-		var response json.RawMessage
-
-		logger.Infof("Starting update id: %d. Waiting for response....", request.Id)
-
-		err := updateService.Call("start", nil, &response, time.Second*10)
-
-		logger.Infof("Got update start response: %d. %v", request.Id, response)
-
-		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
-		} else {
-			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
-		}
-
-		return resp
-	})
-
 	var lastProgress map[string]interface{}
-
-	updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
-		lastProgress = *progress
-
-		logger.Infof("Got update progress: %v", *progress)
-		return true
-	})
 
 	rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
@@ -171,37 +135,108 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui C
 		return resp
 	})
 
-	rpc_router.AddHandler("sphere.setup.display_drawing", func(request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
+	if !factoryReset {
 
-		var response json.RawMessage
+		conn, err := ninja.Connect("sphere-setup-assistant-updates")
 
-		err := ledService.Call("displayDrawing", request.Params, &response, time.Second*10)
-
-		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
-		} else {
-			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		if err != nil {
+			logger.FatalErrorf(err, "Failed to connect to mqtt")
 		}
 
-		return resp
-	})
+		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
+		ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
 
-	rpc_router.AddHandler("sphere.setup.draw", func(request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
+		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
+			lastProgress = *progress
 
-		var response json.RawMessage
+			logger.Infof("Got update progress: %v", *progress)
+			return true
+		})
 
-		err := ledService.Call("draw", request.Params, &response, time.Second*10)
+		rpc_router.AddHandler("sphere.setup.start_update", func(request JSONRPCRequest) chan JSONRPCResponse {
+			resp := make(chan JSONRPCResponse, 1)
 
-		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
-		} else {
-			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
-		}
+			var response json.RawMessage
 
-		return resp
-	})
+			logger.Infof("Starting update id: %d. Waiting for response....", request.Id)
+
+			err := updateService.Call("start", nil, &response, time.Second*10)
+
+			logger.Infof("Got update start response: %d. %v", request.Id, response)
+
+			if err == nil {
+				resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
+			} else {
+				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+			}
+
+			return resp
+		})
+
+		var lastProgress map[string]interface{}
+
+		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
+			lastProgress = *progress
+
+			logger.Infof("Got update progress: %v", *progress)
+			return true
+		})
+
+		rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
+			resp := make(chan JSONRPCResponse, 1)
+
+			logger.Infof("Requesting update progress id:%s", request.Id)
+
+			resp <- JSONRPCResponse{"2.0", request.Id, lastProgress, nil}
+
+			logger.Infof("Sent progress %v", lastProgress)
+
+			running, ok := lastProgress["running"]
+
+			// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
+			if ok && running.(bool) == false { /*running:*/
+				logger.Infof("Update is finished!")
+				go func() {
+					time.Sleep(time.Second * 5)
+					srv.Close()
+				}()
+			}
+
+			return resp
+		})
+
+		rpc_router.AddHandler("sphere.setup.display_drawing", func(request JSONRPCRequest) chan JSONRPCResponse {
+			resp := make(chan JSONRPCResponse, 1)
+
+			var response json.RawMessage
+
+			err := ledService.Call("displayDrawing", request.Params, &response, time.Second*10)
+
+			if err == nil {
+				resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
+			} else {
+				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+			}
+
+			return resp
+		})
+
+		rpc_router.AddHandler("sphere.setup.draw", func(request JSONRPCRequest) chan JSONRPCResponse {
+			resp := make(chan JSONRPCResponse, 1)
+
+			var response json.RawMessage
+
+			err := ledService.Call("draw", request.Params, &response, time.Second*10)
+
+			if err == nil {
+				resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
+			} else {
+				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+			}
+
+			return resp
+		})
+	}
 
 	return rpc_router
 }
