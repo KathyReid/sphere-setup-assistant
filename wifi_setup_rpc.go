@@ -137,8 +137,8 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *
 
 	var lastProgress map[string]interface{}
 
-	updateService.OnEvent("progress", func(progress map[string]interface{}, topicKeys map[string]string) bool {
-		lastProgress = progress
+	updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
+		lastProgress = *progress
 
 		logger.Infof("Got update progress: %v", progress)
 		return true
