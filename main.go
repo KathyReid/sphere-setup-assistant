@@ -16,11 +16,16 @@ const WirelessNetworkInterface = "wlan0"
 const WirelessStaleTimeout = time.Second * 30 // FIXME: INCREASE THIS. a few minutes at least when not in testing.
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
+var factoryReset = false
+
+// factoryReset - we can't use anything that requires MQTT in this mode
 
 var logger = nlog.GetLogger("sphere-setup")
 
 func main() {
 	// ap0 adhoc/hostap management
+	flag.BoolVar(&factoryReset, "factory-reset", false, "Run in factory reset mode.")
+
 	config := LoadConfig("/etc/opt/ninja/setup-assistant.conf")
 	apManager := NewAccessPointManager(config)
 
