@@ -73,11 +73,11 @@ func main() {
 		Name: "ninjasphere",
 		Connect: func(c gatt.Conn) {
 			logger.Infof("BLE Connect")
-			pairing_ui.DisplayIcon("ble_connected.gif")
+			pairing_ui.DisplayIcon("ble-connected.gif")
 		},
 		Disconnect: func(c gatt.Conn) {
 			logger.Infof("BLE Disconnect")
-			pairing_ui.DisplayIcon("ble_disconnected.gif")
+			pairing_ui.DisplayIcon("ble-disconnected.gif")
 		},
 		StateChange: func(state string) {
 			logger.Infof("BLE State Change: %s", state)
