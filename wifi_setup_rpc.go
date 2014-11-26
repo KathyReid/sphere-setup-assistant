@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/elliots/go-wireless/iwlib"
@@ -136,21 +135,29 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *
 		return resp
 	})
 
+	var lastProgress map[string]interface{}
+
+	updateService.OnEvent("progress", func(progress map[string]interface{}, topicKeys map[string]string) bool {
+		lastProgress = progress
+
+		logger.Infof("Got update progress: %v", progress)
+		return true
+	})
+
 	rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
 
-		var response json.RawMessage
+		logger.Infof("Requesting update progress id:%s", request.Id)
 
-		err := updateService.Call("getProgress", nil, &response, time.Second*10)
+		resp <- JSONRPCResponse{"2.0", request.Id, lastProgress, nil}
 
-		if err == nil {
-			resp <- JSONRPCResponse{"2.0", request.Id, &response, nil}
-		} else {
-			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
-		}
+		logger.Infof("Sent progress %v", lastProgress)
+
+		running, ok := lastProgress["running"]
 
 		// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
-		if strings.Contains(string(response), "false") { /*running:*/
+		if ok && running.(bool) == false { /*running:*/
+			logger.Infof("Update is finished!")
 			go func() {
 				time.Sleep(time.Second * 5)
 				srv.Close()
