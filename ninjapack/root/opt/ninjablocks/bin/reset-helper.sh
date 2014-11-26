@@ -141,7 +141,7 @@ download_recovery_script() {
 	curl -s "${sha1url}" > "$sha1name" &&
 	progress "downloaded." &&
 	progress "downloading ${shurl}..." &&
-	curl -s "$(shurl)" > "$shname" &&
+	curl -s "${shurl}" > "$shname" &&
 	progress "downloaded." &&
 	check_file "$shname" &&
 	echo $shname || die "ERR006: failed to download '$(url url .sh)' to '$shname'"
