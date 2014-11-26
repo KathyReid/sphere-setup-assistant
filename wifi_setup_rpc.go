@@ -23,7 +23,7 @@ type WifiCredentials struct {
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
-func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *ConsolePairingUI) *JSONRPCRouter {
+func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) *JSONRPCRouter {
 
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()

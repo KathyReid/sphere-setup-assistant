@@ -29,7 +29,7 @@ type PairingUI interface {
 	DisplayPairingCode(code string)
 }
 
-func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler, pairing_ui *ConsolePairingUI) {
+func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth_handler AuthHandler, pairing_ui ConsolePairingUI) {
 	svc := srv.AddService(gatt.MustParseUUID(WifiConnnectionService))
 
 	state := StateAwaitingIntent

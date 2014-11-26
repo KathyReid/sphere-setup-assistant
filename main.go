@@ -30,7 +30,7 @@ func main() {
 		apManager.SetupFirewall()
 		return
 	}
-	var pairing_ui *ConsolePairingUI
+	var pairing_ui ConsolePairingUI
 	var controlChecker *ControlChecker
 
 	restartHeartbeat := false
