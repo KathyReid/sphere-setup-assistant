@@ -5,6 +5,10 @@ die() {
 	exit 1
 }
 
+progress() {
+	echo "$*" 1>&2
+}
+
 # setup the recovery environment. look for an environment far on the image partition and use it, if it exists.
 setup() {
 	RECOVERY_IMAGE_DEVICE=${RECOVERY_IMAGE_DEVICE:-/dev/mmcblk0p4}
@@ -38,6 +42,7 @@ mount_helper() {
 		current=$(mount_helper mount-point "$device")
 
 		if test -z "$current"; then
+			progress "mounting $device..."
 			test -d "$mountpoint" || mkdir -p "$mountpoint" &&
 			/bin/mount "$device" "$mountpoint" &&
 			current=$(mount_helper mount-point "$device")
@@ -45,9 +50,28 @@ mount_helper() {
 
 		if test -n "$current"; then
 			echo "$current"
+			progress "$device is mounted."
 			return 0
 		else
-			return 1
+			progress "$device could not be mounted."
+			die "ERR001: failed to mount $device"
+		fi
+	;;
+	require-unmounted)
+		current=$(mount_helper mount-point "$device")
+
+		if test -n "$current"; then
+			progress "unmounting $device..."
+			/bin/umount "$device" &&
+			current=$(mount_helper mount-point "$device")
+		fi
+
+		if test -z "$current"; then
+			progress "$device is unmounted."
+			return 0
+		else
+			progress "$device could not be dismounted."
+			die "ERR002: failed to unmount $device"
 		fi
 	;;
 	esac
@@ -95,9 +119,11 @@ sha1() {
 # check that contents of a file has the same sha1sum as the contents of a co-located .sha1 file
 check_file() {
 	file=$1
+	progress "verifying checksum of '$file'..."
 	filesum="$(sha1 < "${file}")"
 	checksum="$(cat "${file}.sha1")"
-	test "$filesum" = "$checksum" || die "checksum failed: '$file' $filesum != $checksum"
+	test "$filesum" = "$checksum" || die "ERR003: checksum failed: '$file' $filesum != $checksum"
+	progress "verified '$file' has checksum $checksum."
 }
 
 # download the recovery script and report the location of the downloaded file
@@ -105,19 +131,26 @@ download_recovery_script() {
 	sha1name=/tmp/$(url image)$(url suffix .sh.sha1)
 	shname=/tmp/$(url image)$(url suffix .sh)
 
-	! test -f "$sha1name" || rm "$sha1name" || die "could not delete existing sha1 file - $sha1name"
-	! test -f "$shname" || rm "$shname" || die "could not delete existing sh file - $shname"
+	! test -f "$sha1name" || rm "$sha1name" || die "ERR004: could not delete existing sha1 file - $sha1name"
+	! test -f "$shname" || rm "$shname" || die "ERR005: could not delete existing sh file - $shname"
 
-	curl -s "$(url url .sh.sha1)" > "$sha1name" &&
-	curl -s "$(url url .sh)" > "$shname" &&
+	sha1url="$(url url .sh.sha1)"
+	shurl="$(url url .sh)"
+
+	progress "downloading ${sha1url}..." &&
+	curl -s "${sha1url}" > "$sha1name" &&
+	progress "downloaded." &&
+	progress "downloading ${shurl}..." &&
+	curl -s "$(shurl)" > "$shname" &&
+	progress "downloaded." &&
 	check_file "$shname" &&
-	echo $shname || die "failed to download '$(url url .sh)' to '$shname'"
+	echo $shname || die "ERR006: failed to download '$(url url .sh)' to '$shname'"
 }
 
 # checks that we are in at least 2014
 check_time() {
 	year=$(date +%Y)
-	test "$year" -ge 2014 || die "bad clock state: $(date "+%Y-%m-%d %H:%M:%S")"
+	test "$year" -ge 2014 || die "ERR007: bad clock state: $(date "+%Y-%m-%d %H:%M:%S")"
 }
 
 # if the specified recovery image exists in the image mountpoint use it. if that image doesn't
@@ -143,11 +176,14 @@ factory_reset() {
 	export RECOVERY_IMAGE
 	export RECOVERY_SUFFIX
 
+	progress "factory reset starts..."
 	if recovery_script=$(download_recovery_script) && test -f "$recovery_script"; then
+		progress "launching recovery script '$recovery_script'..."
 		sh "$recovery_script" recovery-with-network
 	else
+		progress "failed to download recovery script."
 		if ! mountpoint="$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}" /tmp/image)"; then
-			die "unable to mount recovery image device: ${RECOVERY_IMAGE_DEVICE}"
+			die "ERR008: unable to mount recovery image device: ${RECOVERY_IMAGE_DEVICE}"
 		else
 			RECOVERY_IMAGE=$(image_from_mount_point "$mountpoint")
 			script_file="$(url image)$(url suffix .sh)"
@@ -156,12 +192,15 @@ factory_reset() {
 			unpacked_script="/tmp/${script_file}"
 			unpacked_sha1="/tmp/${sha1_file}"
 			if test -n "$tar"; then
+				progress "unpacking ${script_file} from $tar..." &&
 				tar -O -xf "$tar" "${script_file}" > "${unpacked_script}" &&
+				progress "unpacking ${sha1_file} from $tar..." &&
 				tar -O -xf "$tar" "${sha1_file}" > "${unpacked_sha1}" &&
 				check_file "${unpacked_script}" &&
+				progress "launching ${unpacked_script} from $tar..." &&
 				sh "${unpacked_script}" recovery-without-network "$tar"
 			else
-				die "could not locate recovery tar on recovery image device"
+				die "ERR009: could not locate recovery tar on recovery image device"
 			fi
 		fi
 	fi
