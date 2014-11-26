@@ -64,13 +64,20 @@ func main() {
 	}
 	defer wifi_manager.Cleanup()
 
+	pairing_ui, err = NewConsolePairingUI()
+	if err != nil {
+		log.Fatal("Could not setup ninja connection")
+	}
+
 	srv := &gatt.Server{
 		Name: "ninjasphere",
 		Connect: func(c gatt.Conn) {
 			logger.Infof("BLE Connect")
+			pairing_ui.DisplayIcon("ble_connected.gif")
 		},
 		Disconnect: func(c gatt.Conn) {
 			logger.Infof("BLE Disconnect")
+			pairing_ui.DisplayIcon("ble_disconnected.gif")
 		},
 		StateChange: func(state string) {
 			logger.Infof("BLE State Change: %s", state)
@@ -81,15 +88,10 @@ func main() {
 	// once the client has authenticated
 	// We pass in the ble server so that we can close the connection once the updates are installed
 	// (THIS SHOULD HAPPEN OVER WIFI INSTEAD!)
-	rpc_router := GetSetupRPCRouter(wifi_manager, srv)
+	rpc_router := GetSetupRPCRouter(wifi_manager, srv, pairing_ui)
 
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")
-
-	pairing_ui, err = NewConsolePairingUI()
-	if err != nil {
-		log.Fatal("Could not setup ninja connection")
-	}
 
 	controlChecker = NewControlChecker(pairing_ui)
 

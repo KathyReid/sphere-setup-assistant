@@ -24,7 +24,7 @@ type WifiCredentials struct {
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
-func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRouter {
+func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui *ConsolePairingUI) *JSONRPCRouter {
 
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
@@ -39,6 +39,8 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRout
 
 	rpc_router.AddHandler("sphere.setup.get_visible_wifi_networks", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
+
+		pairing_ui.DisplayIcon("wifi-searching.gif")
 
 		// Before we search for wifi networks, disable any that are try-fail-ing
 		wifi_manager.DisableAllNetworks()
@@ -61,6 +63,8 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRout
 	rpc_router.AddHandler("sphere.setup.connect_wifi_network", func(request JSONRPCRequest) chan JSONRPCResponse {
 		resp := make(chan JSONRPCResponse, 1)
 
+		pairing_ui.DisplayIcon("wifi-connecting.gif")
+
 		wifi_creds := new(WifiCredentials)
 		b, _ := json.Marshal(request.Params[0])
 		json.Unmarshal(b, wifi_creds)
@@ -79,9 +83,11 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRout
 			for {
 				state := <-states
 				if state == WifiStateConnected {
+					pairing_ui.DisplayIcon("wifi-connected.gif")
 					success = true
 					break
 				} else if state == WifiStateInvalidKey {
+					pairing_ui.DisplayIcon("wifi-failed.gif")
 					success = false
 					break
 				}
@@ -144,7 +150,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server) *JSONRPCRout
 		}
 
 		// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
-		if strings.Contains(string(response), `false`) {
+		if strings.Contains(string(response), "false") { /*running:*/
 			go func() {
 				time.Sleep(time.Second * 5)
 				srv.Close()

@@ -181,6 +181,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 		if !ss.VerifyClientAuthenticator(data) {
 			log.Println("Client Authenticator is not valid")
 			resetState()
+			pairing_ui.DisplayIcon("pairing-code-incorrect.gif")
 			return gatt.StatusUnexpectedError
 		}
 
@@ -189,6 +190,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 		last_enc_iv = 0
 		last_dec_iv = FirstResponseIV
 		log.Println("State -> StateClientVerfied")
+		pairing_ui.DisplayIcon("pairing-code-correct.gif")
 
 		return gatt.StatusSuccess
 	})
