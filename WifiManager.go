@@ -71,6 +71,31 @@ func (m *WifiManager) Cleanup() {
 	m.Controller.Cleanup()
 }
 
+func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
+	WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
+
+	states := m.WatchState()
+
+	m.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
+	m.Controller.ReloadConfiguration()
+
+	success := true
+	for {
+		state := <-states
+		if state == WifiStateConnected {
+			success = true
+			break
+		} else if state == WifiStateInvalidKey {
+			success = false
+			break
+		}
+	}
+
+	m.UnwatchState(states)
+
+	return success
+}
+
 func (m *WifiManager) WifiConfigured() (bool, error) {
 	networks, err := m.Controller.ListNetworks()
 	if err != nil {

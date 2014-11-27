@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/ninjasphere/go-ninja/api"
 	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/ninjasphere/go-ninja/support"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
@@ -79,7 +80,7 @@ func main() {
 
 	// This name is sent in the BLE advertising packet,
 	// and is used by the phone to see that this is a
-	// sphere, and if its in factory reset mode.
+	// sphere, and if it is in factory reset mode.
 	serviceName := "ninjasphere"
 	if factoryReset {
 		serviceName = "ninjasphere-reset"
@@ -100,11 +101,24 @@ func main() {
 		},
 	}
 
+	var conn *ninja.Connection
+
+	if !factoryReset {
+
+		conn, err = ninja.Connect("sphere-setup-assistant-updates")
+
+		if err != nil {
+			logger.FatalErrorf(err, "Failed to connect to mqtt")
+		}
+	}
+
 	// start by registering the RPC functions that will be accessible
 	// once the client has authenticated
 	// We pass in the ble server so that we can close the connection once the updates are installed
 	// (THIS SHOULD HAPPEN OVER WIFI INSTEAD!)
-	rpc_router := GetSetupRPCRouter(wifi_manager, srv, pairing_ui)
+	rpc_router := GetSetupRPCRouter(conn, wifi_manager, srv, pairing_ui)
+
+	StartHTTPServer(conn, wifi_manager, pairing_ui)
 
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")

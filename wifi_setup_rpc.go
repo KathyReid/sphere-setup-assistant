@@ -23,7 +23,7 @@ type WifiCredentials struct {
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
-func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) *JSONRPCRouter {
+func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) *JSONRPCRouter {
 
 	rpc_router := &JSONRPCRouter{}
 	rpc_router.Init()
@@ -71,30 +71,10 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui C
 		logger.Debugf("Got wifi credentials %v", wifi_creds)
 
 		go func() {
-			WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
-
-			states := wifi_manager.WatchState()
-
-			wifi_manager.AddStandardNetwork(wifi_creds.SSID, wifi_creds.Key)
-			wifi_manager.Controller.ReloadConfiguration()
-
-			success := true
-			for {
-				state := <-states
-				if state == WifiStateConnected {
-					pairing_ui.DisplayIcon("wifi-connected.gif")
-					success = true
-					break
-				} else if state == WifiStateInvalidKey {
-					pairing_ui.DisplayIcon("wifi-failed.gif")
-					success = false
-					break
-				}
-			}
-
-			wifi_manager.UnwatchState(states)
+			success := wifi_manager.SetCredentials(wifi_creds)
 
 			if success {
+				pairing_ui.DisplayIcon("wifi-connected.gif")
 				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
 				if err != nil {
 					// ow ow ow
@@ -103,6 +83,7 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui C
 				pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
 				resp <- pong
 			} else {
+				pairing_ui.DisplayIcon("wifi-failed.gif")
 				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Could not connect to specified WiFi network, is the key correct?", nil}}
 			}
 		}()
@@ -136,12 +117,6 @@ func GetSetupRPCRouter(wifi_manager *WifiManager, srv *gatt.Server, pairing_ui C
 	})
 
 	if !factoryReset {
-
-		conn, err := ninja.Connect("sphere-setup-assistant-updates")
-
-		if err != nil {
-			logger.FatalErrorf(err, "Failed to connect to mqtt")
-		}
 
 		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
 		ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
