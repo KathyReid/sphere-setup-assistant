@@ -83,7 +83,7 @@ func main() {
 	// sphere, and if it is in factory reset mode.
 	serviceName := "ninjasphere"
 	if factoryReset {
-		serviceName = "ninjasphere-reset"
+		serviceName = "resetsphere"
 	}
 
 	srv := &gatt.Server{
