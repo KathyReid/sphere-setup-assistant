@@ -65,6 +65,9 @@ func (a *AccessPointManager) SetupFirewall() {
 		a.iptables("-P", "FORWARD", "ACCEPT")
 		a.iptables("-F")
 
+		// Allow the pairing webserver to be seen from the AP
+		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-p", "tcp", "--dport", "8888", "-j", "ACCEPT")
+
 		// allow nothing on here. before doing this, we will eventually allow setup access on one port.
 		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-j", "DROP")
 	}
