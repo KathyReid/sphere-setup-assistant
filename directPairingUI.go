@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/lucasb-eyer/go-colorful"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/ninjasphere/sphere-go-led-controller/ui"
 	"github.com/ninjasphere/sphere-go-led-controller/util"
@@ -55,12 +56,20 @@ func newDirectPairingUI() (*directPairingUI, error) {
 
 func (u *directPairingUI) DisplayColorHint(color string) error {
 	fmt.Fprintf(os.Stderr, "color hint %s\n", color)
-	return u.DisplayColorHint(color)
+	col, err := colorful.Hex(color)
+
+	if err != nil {
+		return err
+	}
+
+	u.layout.ShowColor(col)
+	return nil
 }
 
 func (u *directPairingUI) DisplayPairingCode(code string) error {
 	fmt.Fprintf(os.Stderr, "pairing code %d\n", code)
-	return u.DisplayPairingCode(code)
+	u.layout.ShowCode(code)
+	return nil
 }
 
 func (u *directPairingUI) EnableControl() error {
@@ -68,9 +77,10 @@ func (u *directPairingUI) EnableControl() error {
 }
 
 func (u *directPairingUI) DisplayIcon(icon string) error {
-	return u.DisplayIcon(icon)
+	u.layout.ShowIcon(icon)
+	return nil
 }
 
 func (u *directPairingUI) DisplayResetMode(m *model.ResetMode) error {
-	return u.DisplayResetMode(m)
+	return fmt.Errorf("Reset mode ui is not available in reset mode")
 }
