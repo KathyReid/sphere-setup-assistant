@@ -6,6 +6,7 @@ import (
 	"time"
 
 	nlog "github.com/ninjasphere/go-ninja/logger"
+	"github.com/ninjasphere/go-ninja/support"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/paypal/gatt"
 )
@@ -156,6 +157,10 @@ func main() {
 		// the wireless AP causes control to be enabled, so we just start the heartbeat immediately
 		controlChecker.StartHeartbeat()
 	}
+
+	go func() {
+		support.WaitUntilSignal()
+	}()
 
 	for {
 		state := <-states
