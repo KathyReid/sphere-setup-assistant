@@ -91,35 +91,12 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 		return resp
 	})
 
-	var lastProgress map[string]interface{}
-
-	rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
-		resp := make(chan JSONRPCResponse, 1)
-
-		logger.Infof("Requesting update progress id:%s", request.Id)
-
-		resp <- JSONRPCResponse{"2.0", request.Id, lastProgress, nil}
-
-		logger.Infof("Sent progress %v", lastProgress)
-
-		running, ok := lastProgress["running"]
-
-		// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
-		if ok && running.(bool) == false { /*running:*/
-			logger.Infof("Update is finished!")
-			go func() {
-				time.Sleep(time.Second * 5)
-				srv.Close()
-			}()
-		}
-
-		return resp
-	})
-
 	if !factoryReset {
 
 		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
 		ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
+
+		var lastProgress map[string]interface{}
 
 		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
 			lastProgress = *progress
@@ -146,15 +123,6 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 			}
 
 			return resp
-		})
-
-		var lastProgress map[string]interface{}
-
-		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
-			lastProgress = *progress
-
-			logger.Infof("Got update progress: %v", *progress)
-			return true
 		})
 
 		rpc_router.AddHandler("sphere.setup.get_update_progress", func(request JSONRPCRequest) chan JSONRPCResponse {
