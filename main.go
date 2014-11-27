@@ -28,6 +28,10 @@ func main() {
 	// ap0 adhoc/hostap management
 	flag.BoolVar(&factoryReset, "factory-reset", false, "Run in factory reset mode.")
 
+	go func() {
+		support.WaitUntilSignal()
+	}()
+
 	config := LoadConfig("/etc/opt/ninja/setup-assistant.conf")
 	apManager := NewAccessPointManager(config)
 
@@ -171,10 +175,6 @@ func main() {
 		// the wireless AP causes control to be enabled, so we just start the heartbeat immediately
 		controlChecker.StartHeartbeat()
 	}
-
-	go func() {
-		support.WaitUntilSignal()
-	}()
 
 	for {
 		state := <-states
