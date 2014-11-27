@@ -69,7 +69,9 @@ func main() {
 	}
 	defer wifi_manager.Cleanup()
 
-	pairing_ui, err = NewConsolePairingUI()
+	// When in reset mode, this will talk to the led matrix directly,
+	// otherwise, it will use sphere-go-led-controller via mqtt.
+	pairing_ui, err = NewPairingUI()
 	if err != nil {
 		log.Fatal("Could not setup ninja connection")
 	}

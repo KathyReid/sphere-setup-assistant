@@ -92,39 +92,16 @@ type ConsolePairingUI interface {
 	DisplayResetMode(m *model.ResetMode) error
 }
 
-type consolePairingUI struct {
+type ledControllerPairingUI struct {
 	conn   *ninja.Connection
 	serial string
 }
 
-type dummyConsolePairingUI struct {
-}
-
-func (*dummyConsolePairingUI) DisplayColorHint(color string) error {
-	return nil
-}
-
-func (*dummyConsolePairingUI) DisplayPairingCode(code string) error {
-	return nil
-}
-
-func (*dummyConsolePairingUI) EnableControl() error {
-	return nil
-}
-
-func (*dummyConsolePairingUI) DisplayIcon(icon string) error {
-	return nil
-}
-
-func (*dummyConsolePairingUI) DisplayResetMode(m *model.ResetMode) error {
-	return nil
-}
-
 // NewConsolePairingUI build a new console pairing ui
-func NewConsolePairingUI() (ConsolePairingUI, error) {
+func NewPairingUI() (ConsolePairingUI, error) {
 
 	if factoryReset {
-		return &dummyConsolePairingUI{}, nil
+		return newDirectPairingUI()
 	} else {
 
 		conn, err := ninja.Connect("sphere-setup-assistant")
@@ -133,7 +110,7 @@ func NewConsolePairingUI() (ConsolePairingUI, error) {
 			log.Fatalf("Failed to connect to mqtt: %s", err)
 		}
 
-		return &consolePairingUI{
+		return &ledControllerPairingUI{
 			conn:   conn,
 			serial: config.Serial(),
 		}, nil
@@ -141,7 +118,7 @@ func NewConsolePairingUI() (ConsolePairingUI, error) {
 }
 
 // DisplayPairingCode makes an rpc call to the led-controller for displaying a color hint
-func (ui *consolePairingUI) DisplayColorHint(color string) error {
+func (ui *ledControllerPairingUI) DisplayColorHint(color string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
 	logger.Debugf(" *** COLOR HINT: %s ***", color)
@@ -159,7 +136,7 @@ func (ui *consolePairingUI) DisplayColorHint(color string) error {
 }
 
 // DisplayPairingCode makes an rpc call to the led-controller for displaying the pairing code
-func (ui *consolePairingUI) DisplayPairingCode(code string) error {
+func (ui *ledControllerPairingUI) DisplayPairingCode(code string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"code":"1234"}],"jsonrpc": "2.0","method":"displayPairingCode","time":132123123}' -t '$node/:node/led-controller'
 
 	logger.Debugf(" *** PAIRING CODE: %s ***", code)
@@ -176,7 +153,7 @@ func (ui *consolePairingUI) DisplayPairingCode(code string) error {
 }
 
 // EnableControl once paired we need to led-controller to enable control
-func (ui *consolePairingUI) EnableControl() error {
+func (ui *ledControllerPairingUI) EnableControl() error {
 	// mosquitto_pub -m '{"id":123, "params": [],"jsonrpc": "2.0","method":"enableControl","time":132123123}' -t '$node/:node/led-controller'
 
 	err := ui.sendRpcRequest("enableControl", make(map[string]string))
@@ -191,7 +168,7 @@ func (ui *consolePairingUI) EnableControl() error {
 }
 
 // DisplayIcon
-func (ui *consolePairingUI) DisplayIcon(icon string) error {
+func (ui *ledControllerPairingUI) DisplayIcon(icon string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"icon":"weather.png"}],"jsonrpc": "2.0","method":"displayIcon","time":132123123}' -t '$node/SLC6M6GIPGQAK/led-controller'
 
 	logger.Debugf(" *** DISPLAY ICON: %s ***", icon)
@@ -207,7 +184,7 @@ func (ui *consolePairingUI) DisplayIcon(icon string) error {
 	return nil
 }
 
-func (ui *consolePairingUI) DisplayResetMode(m *model.ResetMode) error {
+func (ui *ledControllerPairingUI) DisplayResetMode(m *model.ResetMode) error {
 
 	logger.Debugf(" *** DISPLAY RESET MODE: %v ***", m)
 
@@ -220,12 +197,12 @@ func (ui *consolePairingUI) DisplayResetMode(m *model.ResetMode) error {
 	return nil
 }
 
-func (ui *consolePairingUI) sendRpcRequest(method string, payload map[string]string) error {
+func (ui *ledControllerPairingUI) sendRpcRequest(method string, payload map[string]string) error {
 	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
 	return ui.conn.GetServiceClient(topic).Call(method, []interface{}{payload}, nil, 15*time.Second)
 }
 
-func (ui *consolePairingUI) sendMarshaledRpcRequest(method string, payload interface{}) error {
+func (ui *ledControllerPairingUI) sendMarshaledRpcRequest(method string, payload interface{}) error {
 	topic := fmt.Sprintf("$node/%s/led-controller", ui.serial)
 	return ui.conn.GetServiceClient(topic).Call(method, payload, nil, 15*time.Second)
 }
