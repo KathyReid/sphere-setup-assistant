@@ -65,7 +65,7 @@ func main() {
 	// wlan0 client management
 	wifi_manager, err := NewWifiManager(WirelessNetworkInterface)
 	if err != nil {
-		log.Fatal("Could not setup manager for wlan0, does the interface exist?")
+		log.Fatal("Could not setup manager for wlan0, does the interface exist?: %v", err)
 	}
 	defer wifi_manager.Cleanup()
 
