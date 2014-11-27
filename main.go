@@ -74,8 +74,16 @@ func main() {
 		log.Fatal("Could not setup ninja connection")
 	}
 
+	// This name is sent in the BLE advertising packet,
+	// and is used by the phone to see that this is a
+	// sphere, and if its in factory reset mode.
+	serviceName := "ninjasphere"
+	if factoryReset {
+		serviceName = "ninjasphere-reset"
+	}
+
 	srv := &gatt.Server{
-		Name: "ninjasphere",
+		Name: serviceName,
 		Connect: func(c gatt.Conn) {
 			logger.Infof("BLE Connect")
 			pairing_ui.DisplayIcon("ble-connected.gif")
