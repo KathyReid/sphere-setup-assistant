@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"os"
 
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/ninjasphere/sphere-go-led-controller/ui"
@@ -53,10 +54,12 @@ func newDirectPairingUI() (*directPairingUI, error) {
 }
 
 func (u *directPairingUI) DisplayColorHint(color string) error {
+	fmt.Fprintf(os.Stderr, "color hint %s\n", color)
 	return u.DisplayColorHint(color)
 }
 
 func (u *directPairingUI) DisplayPairingCode(code string) error {
+	fmt.Fprintf(os.Stderr, "pairing code %d\n", code)
 	return u.DisplayPairingCode(code)
 }
 
