@@ -23,6 +23,10 @@ type WifiCredentials struct {
 
 const WLANInterfaceTemplate = "iface wlan0 inet dhcp\n"
 
+// This is ugly... but for some reason go-ninja was only delivering the progress to one of the
+// listeners, so rpc and http need to share.
+var lastUpdateProgress map[string]interface{}
+
 func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) *JSONRPCRouter {
 
 	rpc_router := &JSONRPCRouter{}
@@ -96,23 +100,18 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
 		ledService := conn.GetServiceClient("$node/" + config.Serial() + "/led-controller")
 
-		var lastProgress map[string]interface{}
-
-		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
-			lastProgress = *progress
-
-			logger.Infof("Got update progress: %v", *progress)
-			return true
-		})
-
 		rpc_router.AddHandler("sphere.setup.start_update", func(request JSONRPCRequest) chan JSONRPCResponse {
 			resp := make(chan JSONRPCResponse, 1)
 
-			var response json.RawMessage
+			var response bool
 
 			logger.Infof("Starting update id: %d. Waiting for response....", request.Id)
 
 			err := updateService.Call("start", nil, &response, time.Second*10)
+
+			if response {
+				lastUpdateProgress = nil
+			}
 
 			logger.Infof("Got update start response: %d. %v", request.Id, response)
 
@@ -130,11 +129,11 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 
 			logger.Infof("Requesting update progress id:%s", request.Id)
 
-			resp <- JSONRPCResponse{"2.0", request.Id, lastProgress, nil}
+			resp <- JSONRPCResponse{"2.0", request.Id, lastUpdateProgress, nil}
 
-			logger.Infof("Sent progress %v", lastProgress)
+			logger.Infof("Sent progress %v", lastUpdateProgress)
 
-			running, ok := lastProgress["running"]
+			running, ok := lastUpdateProgress["running"]
 
 			// If we have sent back a progress that shows the update is finished... shut down the ble after 5 seconds.
 			if ok && running.(bool) == false { /*running:*/

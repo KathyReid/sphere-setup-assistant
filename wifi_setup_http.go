@@ -80,23 +80,25 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 
 		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
 
-		var lastProgress map[string]interface{}
-
 		updateService.OnEvent("progress", func(progress *map[string]interface{}, topicKeys map[string]string) bool {
-			lastProgress = *progress
+			lastUpdateProgress = *progress
 
 			logger.Infof("Got update progress: %v", *progress)
 			return true
 		})
 
 		http.HandleFunc("/start_update", func(w http.ResponseWriter, r *http.Request) {
-			var response json.RawMessage
+			var response bool
 
 			err := updateService.Call("start", nil, &response, time.Second*10)
 
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+
+			if response {
+				lastUpdateProgress = nil
 			}
 
 			out, err := json.Marshal(&response)
@@ -111,7 +113,7 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 
 		http.HandleFunc("/get_update_progress", func(w http.ResponseWriter, r *http.Request) {
 
-			out, err := json.Marshal(&lastProgress)
+			out, err := json.Marshal(&lastUpdateProgress)
 
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
