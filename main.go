@@ -206,6 +206,10 @@ func main() {
 					apManager.StopHostAP()
 				}
 			}
+			if factoryReset {
+				logger.Infof("Network connected. Quitting.")
+				os.Exit(0)
+			}
 
 		case WifiStateDisconnected:
 			if wireless_stale == nil {
