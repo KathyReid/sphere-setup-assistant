@@ -243,33 +243,41 @@ factory_reset() {
 	export RECOVERY_SUFFIX
 
 	progress "factory reset starts..."
-	if recovery_script=$(download_recovery_script) && test -f "$recovery_script"; then
-		progress "launching recovery script '$recovery_script'..."
-		sh "$recovery_script" recovery-with-network
-	else
-		progress "failed to download recovery script."
-		if ! mountpoint="$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}" /tmp/image)"; then
-			die "ERR008: unable to mount recovery image device: ${RECOVERY_IMAGE_DEVICE}"
+
+	attempt() {
+		if recovery_script=$(download_recovery_script) && test -f "$recovery_script"; then
+			progress "launching recovery script '$recovery_script'..."
+			sh "$recovery_script" recovery-with-network
 		else
-			RECOVERY_IMAGE=$(image_from_mount_point "$mountpoint")
-			script_file="$(url image)$(url suffix .sh)"
-			sha1_file="$(url image)$(url suffix .sh.sha1)"
-			tar="$mountpoint/$(url image)$(url suffix .tar)"
-			unpacked_script="/tmp/${script_file}"
-			unpacked_sha1="/tmp/${sha1_file}"
-			if test -n "$tar"; then
-				progress "unpacking ${script_file} from $tar..." &&
-				tar -O -xf "$tar" "${script_file}" > "${unpacked_script}" &&
-				progress "unpacking ${sha1_file} from $tar..." &&
-				tar -O -xf "$tar" "${sha1_file}" > "${unpacked_sha1}" &&
-				check_file "${unpacked_script}" &&
-				progress "launching ${unpacked_script} from $tar..." &&
-				sh "${unpacked_script}" recovery-without-network "$tar"
+			progress "failed to download recovery script."
+			if ! mountpoint="$(mount_helper require-mounted "${RECOVERY_IMAGE_DEVICE}" /tmp/image)"; then
+				die "ERR008: unable to mount recovery image device: ${RECOVERY_IMAGE_DEVICE}"
 			else
-				die "ERR009: could not locate recovery tar on recovery image device"
+				RECOVERY_IMAGE=$(image_from_mount_point "$mountpoint")
+				script_file="$(url image)$(url suffix .sh)"
+				sha1_file="$(url image)$(url suffix .sh.sha1)"
+				tar="$mountpoint/$(url image)$(url suffix .tar)"
+				unpacked_script="/tmp/${script_file}"
+				unpacked_sha1="/tmp/${sha1_file}"
+				if test -f "$tar"; then
+					progress "unpacking ${script_file} from $tar..." &&
+					tar -O -xf "$tar" "${script_file}" > "${unpacked_script}" &&
+					progress "unpacking ${sha1_file} from $tar..." &&
+					tar -O -xf "$tar" "${sha1_file}" > "${unpacked_sha1}" &&
+					check_file "${unpacked_script}" &&
+					progress "launching ${unpacked_script} from $tar..." &&
+					sh "${unpacked_script}" recovery-without-network "$tar"
+				else
+					die "ERR009: could not locate recovery tar on recovery image device"
+				fi
 			fi
 		fi
-	fi
+	}
+
+	while ! (attempt); do
+		// try to configure the network
+		sphere_installDirectory=/tmp ./sphere-setup-assistant --factory-reset
+	done
 }
 
 main()
