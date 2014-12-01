@@ -30,22 +30,6 @@ patch() {
 	type=$1
 	test $# -ge 1 && shift 1
 	case "$type" in
-	interfaces)
-		cat >/etc/network/interfaces <<EOF
-# /etc/network/interfaces -- configuration file for ifup(8), ifdown(8)
-
-# The loopback interface
-auto lo
-iface lo inet loopback
-
-# Wireless interfaces
-iface wlan0 inet dhcp
-	wireless_mode managed
-	wireless_essid any
-	wpa-driver nl80211
-	wpa-conf /etc/wpa_supplicant.conf
-EOF
-	;;
 	wpa)
 		ssid=$1
 		password=$2
@@ -60,20 +44,6 @@ network={
        key_mgmt=WPA-PSK
 }
 EOF
-	;;
-	iwlib)
-		if test -e /usr/lib/libiw.so.30; then
-			echo /usr/lib/libiw.so.30 already exists
-		else
-			if ! test -e /usr/lib/libiw.so.29; then
-				patch opkg &&
-				opkg install libiw29
-				if ! test -e /usr/lib/libiw.so.29; then
-					die "failed to install libiw29"
-				fi
-			fi
-			ln -sf libiw.so.29 /usr/lib/libiw.so.30
-		fi
 	;;
 	opkg)
 		if ! grep "src all http://osbuilder01.ci.ninjablocks.co/yocto/deploy/ipk/all" /etc/opkg/opkg.conf > /dev/null 2>&1; then
