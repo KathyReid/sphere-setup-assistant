@@ -21,6 +21,7 @@ const WirelessStaleTimeout = time.Second * 30 // FIXME: INCREASE THIS. a few min
 
 var firewallHook = flag.Bool("firewall-hook", false, "Sets up the firewall based on configuration options, and nothing else.")
 var factoryReset = false
+var imagesDir = ""
 
 // factoryReset - we can't use anything that requires MQTT in this mode
 
@@ -46,7 +47,7 @@ func main() {
 		return
 	}
 
-	util.SetImageDirectory(imagesDir)
+	util.SetImageDir(imagesDir)
 	var pairing_ui ConsolePairingUI
 	var controlChecker *ControlChecker
 
