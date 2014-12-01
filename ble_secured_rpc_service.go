@@ -104,6 +104,7 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 				// reset and start!
 			} else if state != StateAwaitingIntent || len(data) != 1 || data[0] != 0x01 {
 				resetState()
+				log.Printf("PairIntentChar: unexpected data of length (%d) received %X - resetting state", len(data), data)
 				return gatt.StatusUnexpectedError
 			}
 
