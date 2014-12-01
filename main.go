@@ -10,6 +10,7 @@ import (
 	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/ninjasphere/go-ninja/support"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
+	"github.com/ninjasphere/sphere-go-led-controller/util"
 	"github.com/paypal/gatt"
 )
 
@@ -28,6 +29,7 @@ var logger = nlog.GetLogger("sphere-setup")
 func main() {
 	// ap0 adhoc/hostap management
 	flag.BoolVar(&factoryReset, "factory-reset", false, "Run in factory reset mode.")
+	flag.StringVar(&imagesDir, "images", "/opt/ninjablocks/drivers/sphere-go-led-controller/images", "The location of the images directory.")
 
 	go func() {
 		support.WaitUntilSignal()
@@ -37,11 +39,14 @@ func main() {
 	apManager := NewAccessPointManager(config)
 
 	flag.Parse()
+
 	if *firewallHook {
 		logger.Debugf("Setting ip firewall rules...")
 		apManager.SetupFirewall()
 		return
 	}
+
+	util.SetImageDirectory(imagesDir)
 	var pairing_ui ConsolePairingUI
 	var controlChecker *ControlChecker
 
