@@ -39,8 +39,20 @@ cd .gopath/src/github.com/${OWNER}/${PROJECT_NAME}
 go get -d -v ./...
 
 # building the master branch on ci
+export CGO_LDFLAGS="-L$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
+go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
+if [ "$BUILDBOX_BRANCH" = "master" ]; then
+        go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -tags release -o ./bin/${BIN_NAME}-iw29
+else
+        go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -o ./bin/${BIN_NAME}-iw29
+fi
+
+# building the master branch on ci
+export CGO_LDFLAGS=
+go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
 if [ "$BUILDBOX_BRANCH" = "master" ]; then
         go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -tags release -o ./bin/${BIN_NAME}
 else
         go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -o ./bin/${BIN_NAME}
 fi
+
