@@ -211,9 +211,15 @@ func main() {
 					apManager.StopHostAP()
 				}
 			}
+
 			if factoryReset {
-				logger.Infof("Network connected. Quitting.")
-				os.Exit(0)
+				// if the app provided credentials, then we need to wait for app to acknowledge the connected state
+				// before we exit otherwise it may not receive the response. So, we configure a callback which
+				// will be called once the app as indicated that it has seen the connected state.
+				wifi_manager.OnAcknowledgment(func() {
+					logger.Infof("Network connected. Quitting.")
+					os.Exit(0)
+				})
 			}
 
 		case WifiStateDisconnected:

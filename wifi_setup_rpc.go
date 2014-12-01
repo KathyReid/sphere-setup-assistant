@@ -76,20 +76,33 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 
 		go func() {
 			success := wifi_manager.SetCredentials(wifi_creds)
-
 			if success {
 				pairing_ui.DisplayIcon("wifi-connected.gif")
 				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
-				if err != nil {
-					// ow ow ow
+				if err == nil {
+					pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
+					resp <- pong
+				} else {
+					logger.Errorf("failed to obtain serial number: %v", err)
+					resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Failed to obtain serial number", nil}}
 				}
 
-				pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
-				resp <- pong
 			} else {
 				pairing_ui.DisplayIcon("wifi-failed.gif")
 				resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, "Could not connect to specified WiFi network, is the key correct?", nil}}
 			}
+		}()
+
+		return resp
+	})
+
+	rpc_router.AddHandler("sphere.setup.acknowledge_wifi_connected", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+		go func() {
+			wifi_manager.ConnectionAcknowledged()
+			logger.Infof("Received acknowledgement of wifi connected from app.")
+			pairing_ui.DisplayIcon("wifi-connected.gif")
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, nil}
 		}()
 
 		return resp

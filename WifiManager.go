@@ -5,6 +5,8 @@ import "github.com/theojulienne/go-wireless/wpactl"
 type WifiManager struct {
 	Controller  *wpactl.WPAController
 	stateChange []chan string
+	ackPending  bool   // true if we need to wait for acknowledgment from app
+	onAck       func() // optional function to execute once acnknowledgment of credentials received
 }
 
 const (
@@ -72,6 +74,8 @@ func (m *WifiManager) Cleanup() {
 }
 
 func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
+
+	m.ackPending = true
 	WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
 
 	states := m.WatchState()
@@ -86,6 +90,7 @@ func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 			success = true
 			break
 		} else if state == WifiStateInvalidKey {
+			m.ackPending = false
 			success = false
 			break
 		}
@@ -139,4 +144,21 @@ func (m *WifiManager) AddStandardNetwork(ssid string, key string) error {
 	m.Controller.SaveConfiguration()
 
 	return nil
+}
+
+func (m *WifiManager) ConnectionAcknowledged() {
+	if m.ackPending {
+		m.ackPending = false
+		if m.onAck != nil {
+			m.onAck()
+		}
+	}
+}
+
+func (m *WifiManager) OnAcknowledgment(then func()) {
+	if m.ackPending {
+		m.onAck = then
+	} else {
+		then()
+	}
 }
