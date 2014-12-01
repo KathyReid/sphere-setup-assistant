@@ -205,6 +205,21 @@ image_from_mount_point() {
 	fi
 }
 
+interfaces() {
+	case "$1" in
+	up)
+		if ! ifconfig | grep ^wlan0 >/dev/null; then
+				ifup wlan0
+		fi
+		if ! hciconfig hci0 | tr \\011 ' ' | grep "^  *UP" >/dev/null; then
+				hciconfig hci0 up
+		if
+	;;
+	*)
+		die "'$1' is not a supported command"
+	esac
+}
+
 # initiate the factory reset
 factory_reset() {
 	# check_time
@@ -243,6 +258,8 @@ factory_reset() {
 			fi
 		fi
 	}
+
+	interfaces up
 
 	while ! (attempt); do
 		// try to configure the network
