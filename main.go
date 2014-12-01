@@ -83,7 +83,7 @@ func main() {
 		log.Fatal("Could not setup ninja connection")
 	}
 
-	log.Debugf("pairing ui obtained...")
+	logger.Debugf("pairing ui obtained...")
 
 	// This name is sent in the BLE advertising packet,
 	// and is used by the phone to see that this is a
