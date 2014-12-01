@@ -159,7 +159,7 @@ func main() {
 			go func() {
 				err := srv.AdvertiseAndServe()
 				if err != nil {
-					logger.Errorf("failure to advertise and serve: ", err)
+					logger.Fatalf("failure to advertise and serve: %v", err)
 				}
 			}()
 			// and if the hostap isn't normally active, make it active
