@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/elliots/go-wireless/iwlib"
+	"github.com/ninjasphere/go-wireless/iwlib"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 	"github.com/paypal/gatt"

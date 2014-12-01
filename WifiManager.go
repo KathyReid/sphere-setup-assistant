@@ -1,6 +1,6 @@
 package main
 
-import "github.com/theojulienne/go-wireless/wpactl"
+import "github.com/ninjasphere/go-wireless/wpactl"
 
 type WifiManager struct {
 	Controller  *wpactl.WPAController
