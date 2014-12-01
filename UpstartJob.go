@@ -32,13 +32,13 @@ func (j *UpstartJob) Running() (bool, error) {
 }
 
 func (j *UpstartJob) Start() {
-	logger.Debugf("Starting upstart job: ", j.Name)
+	logger.Debugf("Starting upstart job: %s", j.Name)
 	data, err := exec.Command("/sbin/start", j.Name).Output()
 	logger.Debugf("exec result: %s err: %s", string(data), err)
 }
 
 func (j *UpstartJob) Stop() {
-	logger.Debugf("Stopping upstart job: ", j.Name)
+	logger.Debugf("Stopping upstart job: %s", j.Name)
 	data, err := exec.Command("/sbin/stop", j.Name).Output()
 	logger.Debugf("exec result: %s err: %s", string(data), err)
 }
