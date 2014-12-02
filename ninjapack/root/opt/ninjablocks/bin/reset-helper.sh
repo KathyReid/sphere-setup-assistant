@@ -213,7 +213,7 @@ interfaces() {
 		fi
 		if ! hciconfig hci0 | tr \\011 ' ' | grep "^  *UP" >/dev/null; then
 				hciconfig hci0 up
-		if
+		fi
 	;;
 	*)
 		die "'$1' is not a supported command"
