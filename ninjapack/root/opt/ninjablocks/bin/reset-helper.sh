@@ -217,6 +217,7 @@ interfaces() {
 	;;
 	*)
 		die "'$1' is not a supported command"
+	;;
 	esac
 }
 
