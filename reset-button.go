@@ -143,7 +143,7 @@ func (r *resetButton) String() string {
 }
 
 func (r *resetButton) commit() {
-	if err := exec.Command("/opt/ninjablocks/bin/reset-helper.sh", r.mode).Run(); err != nil {
+	if err := exec.Command("/opt/ninjablocks/factory-reset/bin/reset-helper.sh", r.mode).Run(); err != nil {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
 	}
 }
