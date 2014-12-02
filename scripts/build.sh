@@ -15,7 +15,7 @@ GIT_COMMIT="$(git rev-parse HEAD)"
 GIT_DIRTY="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
 VERSION="$(grep "const Version " version.go | sed -E 's/.*"(.+)"$/\1/' )"
 
-PRIVATE_PKG="ninjasphere/go-ninja ninjasphere/sphere-go-led-controller ninjasphere/driver-go-blecombined ninjasphere/sphere-factory-test"
+PRIVATE_PKG="ninjasphere/go-ninja ninjasphere/sphere-go-led-controller"
 
 # remove working build
 # rm -rf .gopath
@@ -35,18 +35,6 @@ done
 # move the working path and build
 cd .gopath/src/github.com/${OWNER}/${PROJECT_NAME}
 go get -d -v ./...
-
-make deps
-
-# building the master branch on ci
-export CGO_CFLAGS="-I$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
-export CGO_LDFLAGS="-L$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
-go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
-if [ "$BUILDBOX_BRANCH" = "master" ]; then
-        go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -tags release -o ./bin/${BIN_NAME}-iw29
-else
-        go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -o ./bin/${BIN_NAME}-iw29
-fi
 
 # building the master branch on ci
 export CGO_CFLAGS=
