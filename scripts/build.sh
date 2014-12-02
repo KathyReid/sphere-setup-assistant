@@ -15,6 +15,8 @@ GIT_COMMIT="$(git rev-parse HEAD)"
 GIT_DIRTY="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
 VERSION="$(grep "const Version " version.go | sed -E 's/.*"(.+)"$/\1/' )"
 
+PRIVATE_PKG=ninjasphere/go-ninja ninjasphere/sphere-go-led-controller ninjasphere/driver-go-blecombined
+
 # remove working build
 # rm -rf .gopath
 if [ ! -d ".gopath" ]; then
@@ -24,21 +26,18 @@ fi
 
 export GOPATH="$(pwd)/.gopath"
 
-if [ ! -d $GOPATH/src/github.com/ninjasphere/go-ninja ]; then
-	# Clone our internal commons package
-	git clone git@github.com:ninjasphere/go-ninja.git $GOPATH/src/github.com/ninjasphere/go-ninja
-fi
-
-if [ ! -d $GOPATH/src/github.com/ninjasphere/sphere-go-led-controller ]; then
-	# Clone our internal commons package
-	git clone git@github.com:ninjasphere/sphere-go-led-controller $GOPATH/src/github.com/ninjasphere/sphere-go-led-controller
-fi
+for p in $PRIVATE_PKG; do
+    if [ ! -d $GOPATH/src/github.com/$p ]; then
+		git clone git@github.com:${p}.git $GOPATH/src/github.com/$p
+    fi
+done
 
 # move the working path and build
 cd .gopath/src/github.com/${OWNER}/${PROJECT_NAME}
 go get -d -v ./...
 
 # building the master branch on ci
+export CGO_CFLAGS="-I$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
 export CGO_LDFLAGS="-L$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
 go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
 if [ "$BUILDBOX_BRANCH" = "master" ]; then
@@ -48,6 +47,7 @@ else
 fi
 
 # building the master branch on ci
+export CGO_CFLAGS=
 export CGO_LDFLAGS=
 go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
 if [ "$BUILDBOX_BRANCH" = "master" ]; then
