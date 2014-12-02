@@ -15,7 +15,7 @@ GIT_COMMIT="$(git rev-parse HEAD)"
 GIT_DIRTY="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
 VERSION="$(grep "const Version " version.go | sed -E 's/.*"(.+)"$/\1/' )"
 
-PRIVATE_PKG=ninjasphere/go-ninja ninjasphere/sphere-go-led-controller ninjasphere/driver-go-blecombined
+PRIVATE_PKG=ninjasphere/go-ninja ninjasphere/sphere-go-led-controller ninjasphere/driver-go-blecombined ninjasphere/sphere-factory-test
 
 # remove working build
 # rm -rf .gopath
@@ -35,6 +35,8 @@ done
 # move the working path and build
 cd .gopath/src/github.com/${OWNER}/${PROJECT_NAME}
 go get -d -v ./...
+
+make deps
 
 # building the master branch on ci
 export CGO_CFLAGS="-I$GOPATH/src/github.com/ninjasphere/go-wireless/iwlib29"
