@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ninjasphere/go-wireless/iwlib"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
+	"github.com/ninjasphere/go-wireless/iwlib"
 	"github.com/paypal/gatt"
 )
 
@@ -77,8 +77,16 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 		go func() {
 			success := wifi_manager.SetCredentials(wifi_creds)
 			if success {
+				var err error
+				var path string
+				var serial_number string
+
 				pairing_ui.DisplayIcon("wifi-connected.gif")
-				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
+
+				path, err = exec.LookPath("sphere-serial")
+				if err == nil {
+					serial_number, err = exec.Command("sphere-serial").Output()
+				}
 				if err == nil {
 					pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
 					resp <- pong
