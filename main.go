@@ -161,6 +161,9 @@ func main() {
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
+
+			pairing_ui.DisplayIcon("phone-fade.gif")
+
 			logger.Infof("Launching BLE pairing assistant...")
 			go func() {
 				err := srv.AdvertiseAndServe()
