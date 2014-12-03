@@ -79,7 +79,7 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 			if success {
 				var err error
 				var path string
-				var serial_number string
+				var serial_number []byte
 
 				pairing_ui.DisplayIcon("wifi-connected.gif")
 
