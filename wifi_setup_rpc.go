@@ -85,7 +85,7 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 
 				path, err = exec.LookPath("sphere-serial")
 				if err == nil {
-					serial_number, err = exec.Command("sphere-serial").Output()
+					serial_number, err = exec.Command(path).Output()
 				}
 				if err == nil {
 					pong := JSONRPCResponse{"2.0", request.Id, string(serial_number), nil}
