@@ -25,4 +25,7 @@ const (
 
 	// Done
 	CommsChanChar = "2A06F376-8721-4AD7-9A8E-173A204CEC1C"
+
+	// Disconnect
+	DisconnectChanChar = "CAFEBABE-0000-4AD7-9A8E-173A204CEC1C"
 )

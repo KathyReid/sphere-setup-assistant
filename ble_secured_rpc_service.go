@@ -292,4 +292,11 @@ func RegisterSecuredRPCService(srv *gatt.Server, rpc_router *JSONRPCRouter, auth
 				}
 			}()
 		})
+
+	disconnect := svc.AddCharacteristic(gatt.MustParseUUID(DisconnectChanChar))
+	MultiWritableCharacteristic(disconnect, 256, func(data []byte) byte {
+		srv.Close()
+		return gatt.StatusSuccess
+	})
+
 }
