@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#
+# This wrapper invokes sphere-setup-assistant.bin with the arguments.
+#
+# If it exits with the magic number 168, then it initiates the factory-reset process.
+#
+
+/opt/ninjablocks/bin/sphere-setup-assistant.bin "$@"
+rc=$?
+if test $rc -eq 168; then
+	exec /opt/ninjablocks/factory-reset/bin/reset-helper.sh factory-reset
+else
+	exit $rc
+fi

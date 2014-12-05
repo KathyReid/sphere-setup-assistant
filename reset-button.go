@@ -17,6 +17,7 @@ const (
 	resetUserDataPress = time.Second * time.Duration(3)
 	resetRootPress     = time.Second * time.Duration(6)
 	gracePeriod        = time.Second * time.Duration(3)
+	factoryResetMagic  = 168
 )
 
 type resetButton struct {
@@ -145,6 +146,9 @@ func (r *resetButton) String() string {
 func (r *resetButton) commit() {
 	if err := exec.Command("/opt/ninjablocks/factory-reset/bin/reset-helper.sh", r.mode).Run(); err != nil {
 		logger.Warningf("failed to launch reset-helper.sh: %v", err)
+	}
+	if r.mode == "reset-root" {
+		os.Exit(factoryResetMagic)
 	}
 }
 
