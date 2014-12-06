@@ -9,7 +9,7 @@
 /opt/ninjablocks/bin/sphere-setup-assistant.bin "$@"
 rc=$?
 if test $rc -eq 168; then
-	exec /opt/ninjablocks/factory-reset/bin/reset-helper.sh factory-reset
+	exec /opt/ninjablocks/factory-reset/bin/reset-helper.sh factory-reset force
 else
 	exit $rc
 fi
