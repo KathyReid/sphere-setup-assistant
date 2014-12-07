@@ -9,8 +9,9 @@ factory_reset() {
 	service spheramid stop
 	service ledcontroller stop
 	# try to get the very latest factory reset script from the apt repo
-	apt-get update -y
-	apt-get install ninjasphere-factory-reset
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get update -q -y
+	apt-get install -y ninjasphere-factory-reset
 	# then choose the best one we have
 	"$(dirname "$0")/recovery.sh" choose-latest factory-reset "$@"
 }
