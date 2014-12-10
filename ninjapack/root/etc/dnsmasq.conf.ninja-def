@@ -3,3 +3,4 @@ no-hosts
 addn-hosts=/etc/hosts.dnsmasq
 dhcp-range=172.16.0.50,172.16.0.150,12h
 log-dhcp
+dhcp-leasefile=/var/run/dnsmasq.leases
