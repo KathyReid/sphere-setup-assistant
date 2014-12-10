@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ninjasphere/go-wireless/iwlib"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
+	"github.com/ninjasphere/go-wireless/iwlib"
 )
 
 func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_ui ConsolePairingUI) {
@@ -58,9 +58,11 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 
 		json.Unmarshal(body, &wifi_creds)
 
-		logger.Debugf("Got wifi credentials %v", wifi_creds)
+		logger.Infof("Got wifi credentials %v", wifi_creds)
 
 		success := wifi_manager.SetCredentials(&wifi_creds)
+
+		logger.Infof("Wifi success? %t", success)
 
 		if success {
 			pairing_ui.DisplayIcon("wifi-connected.gif")
@@ -122,6 +124,25 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 
 			io.WriteString(w, string(out))
 		})
+
+		http.HandleFunc("/get_wifi_ip", func(w http.ResponseWriter, r *http.Request) {
+
+			ip, err := GetWlanAddress()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			out, err := json.Marshal(&ip)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			io.WriteString(w, string(out))
+		})
+
 	}
 
 	go func() {

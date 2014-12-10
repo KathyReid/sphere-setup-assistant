@@ -217,7 +217,11 @@ func main() {
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {
 					logger.Infof("Terminating AdHoc pairing assistant.")
-					apManager.StopHostAP()
+					go func() {
+						// Sleep for 20 sec before killing ap, just in case we're using it to set up!
+						time.Sleep(time.Second * 20)
+						apManager.StopHostAP()
+					}()
 				}
 			}
 
