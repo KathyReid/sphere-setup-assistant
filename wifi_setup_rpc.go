@@ -116,6 +116,20 @@ func GetSetupRPCRouter(conn *ninja.Connection, wifi_manager *WifiManager, srv *g
 		return resp
 	})
 
+	rpc_router.AddHandler("sphere.setup.get_wifi_ip", func(request JSONRPCRequest) chan JSONRPCResponse {
+		resp := make(chan JSONRPCResponse, 1)
+
+		ip, err := GetWlanAddress()
+
+		if err == nil {
+			resp <- JSONRPCResponse{"2.0", request.Id, &ip, nil}
+		} else {
+			resp <- JSONRPCResponse{"2.0", request.Id, nil, &JSONRPCError{500, fmt.Sprintf("%s", err), nil}}
+		}
+
+		return resp
+	})
+
 	if !factoryReset {
 
 		updateService := conn.GetServiceClient("$node/" + config.Serial() + "/updates")
