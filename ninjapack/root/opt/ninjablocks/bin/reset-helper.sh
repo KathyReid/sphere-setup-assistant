@@ -6,7 +6,8 @@ die() {
 }
 
 factory_reset() {
-	service spheramid stop
+	service sphere-client stop
+	service sphere-director stop
 	service ledcontroller stop
 	"$(dirname "$0")/recovery.sh" choose-latest factory-reset "$@"
 }
