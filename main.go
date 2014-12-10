@@ -101,11 +101,11 @@ func main() {
 		Name: serviceName,
 		Connect: func(c gatt.Conn) {
 			logger.Infof("BLE Connect")
-			pairing_ui.DisplayIcon("ble-connected.gif")
+			//pairing_ui.DisplayIcon("ble-connected.gif")
 		},
 		Disconnect: func(c gatt.Conn) {
 			logger.Infof("BLE Disconnect")
-			pairing_ui.DisplayIcon("ble-disconnected.gif")
+			//pairing_ui.DisplayIcon("ble-disconnected.gif")
 		},
 		StateChange: func(state string) {
 			logger.Infof("BLE State Change: %s", state)
