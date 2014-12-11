@@ -60,25 +60,23 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 
 		logger.Infof("Got wifi credentials %v", wifi_creds)
 
-		go func() {
+		success := wifi_manager.SetCredentials(&wifi_creds)
 
-			success := wifi_manager.SetCredentials(&wifi_creds)
+		logger.Infof("Wifi success? %t", success)
 
-			logger.Infof("Wifi success? %t", success)
-
-			if success {
-				pairing_ui.DisplayIcon("wifi-connected.gif")
-				serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				io.WriteString(w, string(serial_number))
-			} else {
-				pairing_ui.DisplayIcon("wifi-failed.gif")
-				http.Error(w, "Could not connect to specified WiFi network, is the key correct?", http.StatusBadRequest)
+		if success {
+			pairing_ui.DisplayIcon("wifi-connected.gif")
+			serial_number, err := exec.Command("/opt/ninjablocks/bin/sphere-serial").Output()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
-		}()
+			io.WriteString(w, string(serial_number))
+		} else {
+			pairing_ui.DisplayIcon("wifi-failed.gif")
+			http.Error(w, "Could not connect to specified WiFi network, is the key correct?", http.StatusBadRequest)
+		}
+
 	})
 
 	if !factoryReset {

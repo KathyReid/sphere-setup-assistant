@@ -57,7 +57,7 @@ func (m *WifiManager) emitState(state string) {
 func (m *WifiManager) eventLoop() {
 	for {
 		event := <-m.Controller.EventChannel
-		logger.Debugf("process: %v", event)
+		logger.Infof("eventLoop: %v", event)
 		switch event.Name {
 		case "CTRL-EVENT-DISCONNECTED":
 			m.emitState(WifiStateDisconnected)
@@ -75,7 +75,7 @@ func (m *WifiManager) Cleanup() {
 
 func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 
-	logger.Debugf("SetCredentials: Setting credentials. ssid: %s - password length: %d", wifi_creds.SSID, len(wifi_creds.Key))
+	logger.Infof("SetCredentials: Setting credentials. ssid: %s - password length: %d", wifi_creds.SSID, len(wifi_creds.Key))
 
 	m.ackPending = true
 	WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
@@ -88,7 +88,7 @@ func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 	success := true
 	for {
 		state := <-states
-		logger.Debugf("SetCredentials: Network state: %s", state)
+		logger.Infof("SetCredentials: Network state: %s", state)
 		if state == WifiStateConnected {
 			success = true
 			break
