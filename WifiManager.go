@@ -75,6 +75,8 @@ func (m *WifiManager) Cleanup() {
 
 func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 
+	logger.Debugf("SetCredentials: Setting credentials. ssid: %s - password length: %d", wifi_creds.SSID, len(wifi_creds.Key))
+
 	m.ackPending = true
 	WriteToFile("/etc/network/interfaces.d/wlan0", WLANInterfaceTemplate)
 
@@ -86,6 +88,7 @@ func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 	success := true
 	for {
 		state := <-states
+		logger.Debugf("SetCredentials: Network state: %s", state)
 		if state == WifiStateConnected {
 			success = true
 			break
@@ -97,6 +100,8 @@ func (m *WifiManager) SetCredentials(wifi_creds *WifiCredentials) bool {
 	}
 
 	m.UnwatchState(states)
+
+	logger.Debugf("SetCredentials: Returning Success: %t", success)
 
 	return success
 }
