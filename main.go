@@ -53,6 +53,10 @@ func main() {
 
 	restartHeartbeat := false
 
+	if err := EnsureBLEIsUp(time.Second * 30); err != nil {
+		logger.Errorf("BLE failed to start: %s", err)
+	}
+
 	startResetMonitor(func(m *model.ResetMode) {
 		if pairing_ui == nil || controlChecker == nil {
 			return

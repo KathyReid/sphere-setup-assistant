@@ -4,9 +4,59 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"os/exec"
+	"strings"
+	"time"
 
 	"github.com/paypal/gatt"
 )
+
+func EnsureBLEIsUp(timeout time.Duration) error {
+
+	success := make(chan bool, 1)
+
+	go func() {
+		for {
+			cmd := exec.Command("hciconfig", "hci0")
+
+			output, err := cmd.Output()
+			logger.Infof("Output from hciconfig: %s", output)
+
+			if err != nil {
+				logger.Warningf("Failed to run hciconfig. Sleeping for 3 sec.")
+				time.Sleep(time.Second * 3)
+			} else {
+				if strings.Contains(string(output), "UP") {
+					success <- true
+					break
+				}
+
+				logger.Warningf("BLE is down. Attempting to bring back up")
+
+				cmd := exec.Command("hciconfig", "hci0", "down")
+
+				output, err = cmd.Output()
+				logger.Infof("Output from hciconfig down: %s", output)
+
+				cmd = exec.Command("hciconfig", "hci0", "up")
+
+				output, err = cmd.Output()
+				logger.Infof("Output from hciconfig up: %s", output)
+
+				time.Sleep(time.Second * 5)
+
+			}
+		}
+	}()
+
+	select {
+	case <-time.After(timeout):
+		return fmt.Errorf("Timed out after %s waiting for BLE to be up.", timeout.String())
+	case <-success:
+		return nil
+	}
+
+}
 
 func ChunkWrite(req *gatt.ReadRequest, resp gatt.ReadResponseWriter, out []byte) {
 	end := req.Offset + req.Cap
