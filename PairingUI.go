@@ -36,7 +36,7 @@ func (c *ControlChecker) StartHeartbeat() {
 
 	go func() {
 		for t := range c.ticker.C {
-			logger.Debugf("Sending heartbeat at %s", t)
+			logger.Infof("Sending heartbeat at %s", t)
 			c.enableControl()
 		}
 	}()
@@ -69,7 +69,7 @@ func (c *ControlChecker) enableControl() {
 	// otherwise preseed
 	c.state = rpcStateAwaitingResponse
 	defer func() {
-		logger.Debugf("reset heartbeat state to IDLE")
+		logger.Infof("reset heartbeat state to IDLE")
 		c.state = rpcStateIdle
 	}()
 
@@ -78,7 +78,7 @@ func (c *ControlChecker) enableControl() {
 	if err != nil {
 		logger.Errorf("Failed to send enable %s", err)
 	}
-	logger.Debugf("Heartbeat complete")
+	logger.Infof("Heartbeat complete")
 
 }
 
@@ -121,7 +121,7 @@ func NewPairingUI() (ConsolePairingUI, error) {
 func (ui *ledControllerPairingUI) DisplayColorHint(color string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
-	logger.Debugf(" *** COLOR HINT: %s ***", color)
+	logger.Infof(" *** COLOR HINT: %s ***", color)
 
 	err := ui.sendRpcRequest("displayColor", map[string]string{
 		"color": color,
@@ -139,7 +139,7 @@ func (ui *ledControllerPairingUI) DisplayColorHint(color string) error {
 func (ui *ledControllerPairingUI) DisplayPairingCode(code string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"code":"1234"}],"jsonrpc": "2.0","method":"displayPairingCode","time":132123123}' -t '$node/:node/led-controller'
 
-	logger.Debugf(" *** PAIRING CODE: %s ***", code)
+	logger.Infof(" *** PAIRING CODE: %s ***", code)
 
 	err := ui.sendRpcRequest("displayPairingCode", map[string]string{
 		"code": code,
@@ -162,7 +162,7 @@ func (ui *ledControllerPairingUI) EnableControl() error {
 		return err
 	}
 
-	logger.Debugf(" *** ENABLE CONTROL***")
+	logger.Infof(" *** ENABLE CONTROL***")
 
 	return nil
 }
@@ -171,7 +171,7 @@ func (ui *ledControllerPairingUI) EnableControl() error {
 func (ui *ledControllerPairingUI) DisplayIcon(icon string) error {
 	// mosquitto_pub -m '{"id":123, "params": [{"icon":"weather.png"}],"jsonrpc": "2.0","method":"displayIcon","time":132123123}' -t '$node/SLC6M6GIPGQAK/led-controller'
 
-	logger.Debugf(" *** DISPLAY ICON: %s ***", icon)
+	logger.Infof(" *** DISPLAY ICON: %s ***", icon)
 
 	err := ui.sendRpcRequest("displayIcon", map[string]string{
 		"icon": icon,
@@ -186,7 +186,7 @@ func (ui *ledControllerPairingUI) DisplayIcon(icon string) error {
 
 func (ui *ledControllerPairingUI) DisplayResetMode(m *model.ResetMode) error {
 
-	logger.Debugf(" *** DISPLAY RESET MODE: %v ***", m)
+	logger.Infof(" *** DISPLAY RESET MODE: %v ***", m)
 
 	err := ui.sendMarshaledRpcRequest("displayResetMode", m)
 
