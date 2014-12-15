@@ -97,6 +97,9 @@ type ledControllerPairingUI struct {
 	serial string
 }
 
+// Sorry
+var colorHintSent = false
+
 // NewConsolePairingUI build a new console pairing ui
 func NewPairingUI() (ConsolePairingUI, error) {
 
@@ -119,6 +122,7 @@ func NewPairingUI() (ConsolePairingUI, error) {
 
 // DisplayPairingCode makes an rpc call to the led-controller for displaying a color hint
 func (ui *ledControllerPairingUI) DisplayColorHint(color string) error {
+	colorHintSent = true
 	// mosquitto_pub -m '{"id":123, "params": [{"color":"#FF0000"}],"jsonrpc": "2.0","method":"displayColor","time":132123123}' -t '$node/:node/led-controller'
 
 	logger.Infof(" *** COLOR HINT: %s ***", color)

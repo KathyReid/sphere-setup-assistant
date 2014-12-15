@@ -166,7 +166,18 @@ func main() {
 		if !is_serving_pairer {
 			is_serving_pairer = true
 
-			pairing_ui.DisplayIcon("phone-fade.gif")
+			go func() {
+				// TODO: Remove this. Race condition meant led wasn't up to display this
+				pairing_ui.DisplayIcon("phone-fade.gif")
+				time.Sleep(time.Second * 5)
+				if !colorHintSent {
+					pairing_ui.DisplayIcon("phone-fade.gif")
+					time.Sleep(time.Second * 5)
+					if !colorHintSent {
+						pairing_ui.DisplayIcon("phone-fade.gif")
+					}
+				}
+			}()
 
 			logger.Infof("Launching BLE pairing assistant...")
 			go func() {
