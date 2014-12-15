@@ -15,7 +15,7 @@ GIT_COMMIT="$(git rev-parse HEAD)"
 GIT_DIRTY="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
 VERSION="$(grep "const Version " version.go | sed -E 's/.*"(.+)"$/\1/' )"
 
-PRIVATE_PKG="ninjasphere/go-ninja ninjasphere/sphere-go-led-controller"
+PRIVATE_PKG="ninjasphere/go-ninja ninjasphere/sphere-go-led-controller ninjasphere/sphere-client"
 
 # remove working build
 # rm -rf .gopath
@@ -45,4 +45,3 @@ if [ "$BUILDBOX_BRANCH" = "master" ]; then
 else
         go build -ldflags "-X main.GitCommit ${GIT_COMMIT}${GIT_DIRTY}" -o ./bin/${BIN_NAME}
 fi
-

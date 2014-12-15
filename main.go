@@ -9,6 +9,7 @@ import (
 	"github.com/ninjasphere/go-ninja/api"
 	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/ninjasphere/go-ninja/support"
+	"github.com/ninjasphere/sphere-client/client"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/ninjasphere/sphere-go-led-controller/util"
 	"github.com/paypal/gatt"
@@ -165,6 +166,8 @@ func main() {
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
+
+			client.UpdateSphereAvahiService(false, false)
 
 			go func() {
 				// TODO: Remove this. Race condition meant led wasn't up to display this
