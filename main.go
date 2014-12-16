@@ -166,6 +166,7 @@ func main() {
 
 		if !is_serving_pairer {
 			is_serving_pairer = true
+			colorHintSent = false
 
 			client.UpdateSphereAvahiService(false, false)
 
