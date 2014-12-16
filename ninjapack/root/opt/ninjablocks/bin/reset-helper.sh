@@ -21,8 +21,14 @@ main()
 			# in later kernels (3.12) this path won't exist
 			echo 37 > /sys/kernel/debug/omap_mux/xdma_event_intr1
 		fi
-		echo 20 > /sys/class/gpio/export
-		echo in > /sys/class/gpio/gpio20/direction
+
+		rc=0
+
+		echo "reset-helper.sh: programming gpio20 begins..."
+		echo 20 > /sys/class/gpio/export || rc=$? || echo "warning: 'echo > /sys/class/gpio/export failed with $rc." 1>&2
+		echo in > /sys/class/gpio/gpio20/direction || rc=$? || echo "warning: 'echo > /sys/class/gpio/gpio20/direction' failed with $rc." 1>&2
+		echo "reset-helper.sh: programming gpio20 ends..."
+		exit $rc
 
 		# to read the reset button
 		# cat /sys/class/gpio/gpio20/value
