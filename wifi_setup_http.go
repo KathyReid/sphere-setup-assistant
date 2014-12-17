@@ -13,7 +13,7 @@ import (
 	"github.com/ninjasphere/go-wireless/iwlib"
 )
 
-func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_ui ConsolePairingUI) {
+func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) {
 
 	http.HandleFunc("/get_visible_wifi_networks", func(w http.ResponseWriter, r *http.Request) {
 
@@ -87,6 +87,16 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, pairing_
 		case <-time.After(time.Second * 15):
 			pairing_ui.DisplayIcon("wifi-failed.gif")
 			http.Error(w, "Could not connect to specified WiFi network, is it in range?", http.StatusBadRequest)
+		}
+	})
+
+	http.HandleFunc("/close_ble_central", func(w http.ResponseWriter, r *http.Request) {
+		err := srv.Close()
+
+		if err == nil {
+			io.WriteString(w, "true")
+		} else {
+			io.WriteString(w, "false")
 		}
 	})
 

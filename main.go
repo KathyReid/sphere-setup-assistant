@@ -134,7 +134,7 @@ func main() {
 	// (THIS SHOULD HAPPEN OVER WIFI INSTEAD!)
 	rpc_router := GetSetupRPCRouter(conn, wifi_manager, srv, pairing_ui)
 
-	StartHTTPServer(conn, wifi_manager, pairing_ui)
+	StartHTTPServer(conn, wifi_manager, srv, pairing_ui)
 
 	auth_handler := new(OneTimeAuthHandler)
 	auth_handler.Init("spheramid")
