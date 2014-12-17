@@ -12,7 +12,7 @@ import (
 	"github.com/ninjasphere/sphere-client/client"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/ninjasphere/sphere-go-led-controller/util"
-	"github.com/paypal/gatt"
+	"github.com/ninjasphere/gatt"
 )
 
 const WirelessNetworkInterface = "wlan0"

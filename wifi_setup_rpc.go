@@ -9,7 +9,7 @@ import (
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 	"github.com/ninjasphere/go-wireless/iwlib"
-	"github.com/paypal/gatt"
+	"github.com/ninjasphere/gatt"
 )
 
 type WifiNetwork struct {

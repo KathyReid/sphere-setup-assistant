@@ -11,7 +11,7 @@ import (
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 	"github.com/ninjasphere/go-wireless/iwlib"
-	"github.com/paypal/gatt"
+	"github.com/ninjasphere/gatt"
 )
 
 func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) {

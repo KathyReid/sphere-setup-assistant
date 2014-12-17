@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/paypal/gatt"
+	"github.com/ninjasphere/gatt"
 	srplib "github.com/theojulienne/go-pkgs/crypto/srp"
 )
 
