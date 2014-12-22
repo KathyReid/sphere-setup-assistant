@@ -9,7 +9,7 @@ factory_reset() {
 	service sphere-client stop
 	service sphere-director stop
 	service ledcontroller stop
-	"$(dirname "$0")/recovery.sh" choose-latest factory-reset "$@"
+	"$(dirname "$0")/recovery.sh" with media-updated choose-latest factory-reset "$@"
 }
 
 main()
