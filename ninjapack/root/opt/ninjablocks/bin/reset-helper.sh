@@ -34,11 +34,13 @@ main()
 		# cat /sys/class/gpio/gpio20/value
 	;;
 	reboot)
+		sync
 		/sbin/reboot
 	;;
 	reset-userdata)
 		# TBD: write scripts that will reset the user-data
 		sphere-reset --reset-setup
+		sync
 		/sbin/reboot
 	;;
 	reset-root)
