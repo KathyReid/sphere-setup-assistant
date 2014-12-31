@@ -9,7 +9,7 @@ factory_reset() {
 	service sphere-client stop
 	service sphere-director stop
 	service ledcontroller stop
-	"$(dirname "$0")/recovery.sh" choose-latest factory-reset "$@"
+	"$(dirname "$0")/recovery.sh" with media-updated choose-latest factory-reset "$@"
 }
 
 main()
@@ -34,11 +34,13 @@ main()
 		# cat /sys/class/gpio/gpio20/value
 	;;
 	reboot)
+		sync
 		/sbin/reboot
 	;;
 	reset-userdata)
 		# TBD: write scripts that will reset the user-data
 		sphere-reset --reset-setup
+		sync
 		/sbin/reboot
 	;;
 	reset-root)
