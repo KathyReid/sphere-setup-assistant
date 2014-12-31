@@ -8,13 +8,40 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/ninjasphere/gatt"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 	"github.com/ninjasphere/go-wireless/iwlib"
-	"github.com/ninjasphere/gatt"
 )
 
+func isPaired() bool {
+	return config.HasString("siteId") && config.HasString("token") && config.HasString("userId") && config.HasString("nodeId")
+}
+
 func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) {
+
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+
+		config.MustRefresh()
+
+		data := map[string]interface{}{
+			"paired": isPaired(),
+			"nodeId": config.MustString("nodeId"),
+		}
+
+		if ip, ipErr := GetWlanAddress(); ipErr == nil {
+			data["wlanIp"] = ip
+		}
+
+		if isPaired() {
+			data["siteId"] = config.MustString("siteId")
+			data["userId"] = config.MustString("userId")
+		}
+
+		out, _ := json.Marshal(data)
+
+		io.WriteString(w, string(out))
+	})
 
 	http.HandleFunc("/get_visible_wifi_networks", func(w http.ResponseWriter, r *http.Request) {
 
