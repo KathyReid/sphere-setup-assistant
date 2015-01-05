@@ -6,13 +6,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/ninjasphere/gatt"
 	"github.com/ninjasphere/go-ninja/api"
+	nconfig "github.com/ninjasphere/go-ninja/config"
 	nlog "github.com/ninjasphere/go-ninja/logger"
 	"github.com/ninjasphere/go-ninja/support"
 	"github.com/ninjasphere/sphere-client/client"
 	"github.com/ninjasphere/sphere-go-led-controller/model"
 	"github.com/ninjasphere/sphere-go-led-controller/util"
-	"github.com/ninjasphere/gatt"
 )
 
 const WirelessNetworkInterface = "wlan0"
@@ -168,20 +169,27 @@ func main() {
 			is_serving_pairer = true
 			colorHintSent = false
 
-			client.UpdateSphereAvahiService(false, false)
+			// If we aren't paired, update the avahi service
+			if !nconfig.IsPaired() {
+				client.UpdateSphereAvahiService(false, false)
+			}
 
-			go func() {
-				// TODO: Remove this. Race condition meant led wasn't up to display this
-				pairing_ui.DisplayIcon("phone-fade.gif")
-				time.Sleep(time.Second * 5)
-				if !colorHintSent {
+			// Show the phone pairing icon only if we don't always have AP
+			if !config.Wireless_Host.Always_Active {
+
+				go func() {
+					// TODO: Remove this. Race condition meant led wasn't up to display this
 					pairing_ui.DisplayIcon("phone-fade.gif")
 					time.Sleep(time.Second * 5)
 					if !colorHintSent {
 						pairing_ui.DisplayIcon("phone-fade.gif")
+						time.Sleep(time.Second * 5)
+						if !colorHintSent {
+							pairing_ui.DisplayIcon("phone-fade.gif")
+						}
 					}
-				}
-			}()
+				}()
+			}
 
 			logger.Infof("Launching BLE pairing assistant...")
 			go func() {
@@ -190,6 +198,7 @@ func main() {
 					logger.Fatalf("failure to advertise and serve: %v", err)
 				}
 			}()
+
 			// and if the hostap isn't normally active, make it active
 			if !config.Wireless_Host.Always_Active {
 				logger.Infof("Launching AdHoc pairing assistant...")
