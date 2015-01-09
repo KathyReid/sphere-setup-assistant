@@ -14,10 +14,6 @@ import (
 	"github.com/ninjasphere/go-wireless/iwlib"
 )
 
-func isPaired() bool {
-	return config.HasString("siteId") && config.HasString("token") && config.HasString("userId") && config.HasString("nodeId")
-}
-
 func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gatt.Server, pairing_ui ConsolePairingUI) {
 
 	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
@@ -25,17 +21,19 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gat
 		config.MustRefresh()
 
 		data := map[string]interface{}{
-			"paired": isPaired(),
-			"nodeId": config.MustString("nodeId"),
+			"paired": config.IsPaired(),
+			"nodeId": config.Serial(),
 		}
 
 		if ip, ipErr := GetWlanAddress(); ipErr == nil {
 			data["wlanIp"] = ip
 		}
 
-		if isPaired() {
+		if config.IsPaired() {
 			data["siteId"] = config.MustString("siteId")
 			data["userId"] = config.MustString("userId")
+			data["masterNodeId"] = config.MustString("masterNodeId")
+			data["masterUpdated"] = config.MustString("masterUpdated")
 		}
 
 		out, _ := json.Marshal(data)
