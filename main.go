@@ -239,9 +239,11 @@ func main() {
 			if is_serving_pairer {
 				is_serving_pairer = false
 
-				// We need to keep the server open for now, as we are sending update progress to it, and accepting
-				// led drawing messages. Later, this will be over wifi and we can close it here.
-				//srv.Close()
+				// Sleep for 10s before killing ble, just in case we're using it
+				go func() {
+					time.Sleep(time.Second * 10)
+					srv.Close()
+				}()
 
 				// and if the hostap isn't normally active, turn it off again
 				if !config.Wireless_Host.Always_Active {
