@@ -15,7 +15,7 @@ const (
 	shortDelay         = time.Millisecond * time.Duration(100)
 	longDelay          = time.Second
 	resetUserDataPress = time.Second * time.Duration(3)
-	resetRootPress     = time.Second * time.Duration(45)
+	resetRootPress     = time.Second * time.Duration(30)
 	gracePeriod        = time.Second * time.Duration(3)
 	factoryResetMagic  = 168
 )
