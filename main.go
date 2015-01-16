@@ -176,22 +176,8 @@ func main() {
 
 			// Show the phone pairing icon only if we don't always have AP
 			if !config.Wireless_Host.Always_Active {
-
-				go func() {
-
-					pairing_ui.DisableControl()
-
-					// TODO: Remove this. Race condition meant led wasn't up to display this
-					pairing_ui.DisplayIcon("phone-fade.gif")
-					time.Sleep(time.Second * 5)
-					if !colorHintSent {
-						pairing_ui.DisplayIcon("phone-fade.gif")
-						time.Sleep(time.Second * 5)
-						if !colorHintSent {
-							pairing_ui.DisplayIcon("phone-fade.gif")
-						}
-					}
-				}()
+				pairing_ui.DisableControl()
+				pairing_ui.DisplayIcon("phone-fade.gif")
 			}
 
 			logger.Infof("Launching BLE pairing assistant...")
