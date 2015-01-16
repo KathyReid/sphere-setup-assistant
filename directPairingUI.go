@@ -76,6 +76,10 @@ func (u *directPairingUI) EnableControl() error {
 	return fmt.Errorf("Control is not available in reset mode.")
 }
 
+func (u *directPairingUI) DisableControl() error {
+	return fmt.Errorf("Control is not available in reset mode.")
+}
+
 func (u *directPairingUI) DisplayIcon(icon string) error {
 	u.layout.ShowIcon(icon)
 	return nil

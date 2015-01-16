@@ -178,6 +178,9 @@ func main() {
 			if !config.Wireless_Host.Always_Active {
 
 				go func() {
+
+					pairing_ui.DisableControl()
+
 					// TODO: Remove this. Race condition meant led wasn't up to display this
 					pairing_ui.DisplayIcon("phone-fade.gif")
 					time.Sleep(time.Second * 5)

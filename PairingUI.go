@@ -88,6 +88,7 @@ type ConsolePairingUI interface {
 	DisplayColorHint(color string) error
 	DisplayPairingCode(code string) error
 	EnableControl() error
+	DisableControl() error
 	DisplayIcon(icon string) error
 	DisplayResetMode(m *model.ResetMode) error
 }
@@ -161,6 +162,21 @@ func (ui *ledControllerPairingUI) EnableControl() error {
 	// mosquitto_pub -m '{"id":123, "params": [],"jsonrpc": "2.0","method":"enableControl","time":132123123}' -t '$node/:node/led-controller'
 
 	err := ui.sendRpcRequest("enableControl", make(map[string]string))
+
+	if err != nil {
+		return err
+	}
+
+	logger.Infof(" *** ENABLE CONTROL***")
+
+	return nil
+}
+
+// EnableControl once paired we need to led-controller to enable control
+func (ui *ledControllerPairingUI) DisableControl() error {
+	// mosquitto_pub -m '{"id":123, "params": [],"jsonrpc": "2.0","method":"enableControl","time":132123123}' -t '$node/:node/led-controller'
+
+	err := ui.sendRpcRequest("disableControl", make(map[string]string))
 
 	if err != nil {
 		return err
