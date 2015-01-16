@@ -162,6 +162,8 @@ func main() {
 	states <- WifiStateDisconnected
 	wifi_manager.Controller.ReloadConfiguration()
 
+	badWifiMessage := false
+
 	handleBadWireless := func() {
 		logger.Warningf("Wireless is stale! Invalid SSID, router down, or not in range.")
 
@@ -178,6 +180,9 @@ func main() {
 			if !config.Wireless_Host.Always_Active {
 				pairing_ui.DisableControl()
 				pairing_ui.DisplayIcon("phone-fade.gif")
+				if wifi_manager.WifiConfigured() {
+					badWifiMessage = true
+				}
 			}
 
 			logger.Infof("Launching BLE pairing assistant...")
@@ -224,6 +229,11 @@ func main() {
 				// if the wireless AP mode hasn't already enabled normal control, then enable it now that wifi works
 				controlChecker.StartHeartbeat()
 			}*/
+
+			if badWifiMessage {
+				badWifiMessage = false
+				pairing_ui.EnableControl()
+			}
 
 			if is_serving_pairer {
 				is_serving_pairer = false
