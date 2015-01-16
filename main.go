@@ -180,7 +180,8 @@ func main() {
 			if !config.Wireless_Host.Always_Active {
 				pairing_ui.DisableControl()
 				pairing_ui.DisplayIcon("phone-fade.gif")
-				if wifi_manager.WifiConfigured() {
+				wifi_configured, _ := wifi_manager.WifiConfigured()
+				if wifi_configured {
 					badWifiMessage = true
 				}
 			}
