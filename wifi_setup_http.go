@@ -18,6 +18,8 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gat
 
 	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 
+		logger.Infof("Request to /status from %s", r.RemoteAddr)
+
 		config.MustRefresh()
 
 		data := map[string]interface{}{
@@ -26,17 +28,21 @@ func StartHTTPServer(conn *ninja.Connection, wifi_manager *WifiManager, srv *gat
 		}
 
 		if ip, ipErr := GetWlanAddress(); ipErr == nil {
+			logger.Infof("Have wlan ip: %s", ip)
 			data["wlanIp"] = ip
 		}
 
 		if config.IsPaired() {
+			logger.Infof("Is paired. Adding site and user info")
 			data["siteId"] = config.MustString("siteId")
 			data["userId"] = config.MustString("userId")
 			data["masterNodeId"] = config.MustString("masterNodeId")
-			data["masterUpdated"] = config.MustString("masterUpdated")
+			data["siteUpdated"] = config.MustInt("siteUpdated")
 		}
 
 		out, _ := json.Marshal(data)
+
+		logger.Infof("Returning status: %s", out)
 
 		io.WriteString(w, string(out))
 	})
