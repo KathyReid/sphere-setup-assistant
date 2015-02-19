@@ -282,7 +282,7 @@ type stateAbort struct {
 func (s *stateAbort) onEnter(r *resetButton) {
 	r.timeout.Reset(abortDelay)
 	r.callback(&model.ResetMode{
-		Mode:     modeCycle[r.modeIndex],
+		Mode:     "abort",
 		Hold:     true,
 		Duration: abortDelay,
 	})
