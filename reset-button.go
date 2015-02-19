@@ -283,7 +283,7 @@ func (s *stateAbort) onEnter(r *resetButton) {
 	r.timeout.Reset(abortDelay)
 	r.callback(&model.ResetMode{
 		Mode:     "abort",
-		Hold:     fade,
+		Hold:     false,
 		Duration: abortDelay,
 	})
 }
