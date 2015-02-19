@@ -33,6 +33,10 @@ main()
 		# to read the reset button
 		# cat /sys/class/gpio/gpio20/value
 	;;
+	halt)
+		sync
+		/sbin/shutdown -h now
+	;;
 	reboot)
 		sync
 		/sbin/reboot
