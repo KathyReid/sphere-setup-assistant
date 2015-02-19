@@ -38,7 +38,7 @@ const (
 	shortDelay        = time.Millisecond * time.Duration(100)
 	selectionDelay    = time.Second * time.Duration(3)
 	graceDelay        = time.Second * time.Duration(30)
-	abortDelay        = time.Second * time.Duration(3)
+	abortDelay        = time.Second * time.Duration(1)
 	factoryResetMagic = 168
 )
 
@@ -283,7 +283,7 @@ func (s *stateAbort) onEnter(r *resetButton) {
 	r.timeout.Reset(abortDelay)
 	r.callback(&model.ResetMode{
 		Mode:     "abort",
-		Hold:     true,
+		Hold:     fade,
 		Duration: abortDelay,
 	})
 }
