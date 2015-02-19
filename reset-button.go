@@ -255,13 +255,15 @@ type stateGrace struct {
 
 func (s *stateGrace) onEnter(r *resetButton) {
 
+	var graceDelay time.Duration = 0
+
 	switch modeCycle[r.modeIndex] {
 	case "reset-userdata", "reset-root":
 		// for dangerous actions, choose a longer delay
-		graceDelay := dangerousGraceDelay
+		graceDelay = dangerousGraceDelay
 	default:
 		// for safe actions, choose a shorter delay
-		graceDelay := safeGraceDelay
+		graceDelay = safeGraceDelay
 	}
 	r.timeout.Reset(graceDelay)
 	r.callback(&model.ResetMode{
