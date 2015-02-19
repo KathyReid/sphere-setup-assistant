@@ -70,8 +70,8 @@ func main() {
 			}
 		} else {
 			restartHeartbeat = controlChecker.StopHeartbeat()
-			pairing_ui.DisplayResetMode(m)
 		}
+		pairing_ui.DisplayResetMode(m)
 	})
 
 	apManager.WriteAPConfig()
