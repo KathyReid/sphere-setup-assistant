@@ -35,11 +35,12 @@ import (
 // In the abort state, the color fades from white to black and then the device returns to the rest state.
 
 const (
-	shortDelay        = time.Millisecond * time.Duration(100)
-	selectionDelay    = time.Second * time.Duration(3)
-	graceDelay        = time.Second * time.Duration(30)
-	abortDelay        = time.Second * time.Duration(1)
-	factoryResetMagic = 168
+	shortDelay          = time.Millisecond * time.Duration(100)
+	selectionDelay      = time.Second * time.Duration(3)
+	dangerousGraceDelay = time.Second * time.Duration(30)
+	safeGraceDelay      = time.Second * time.Duration(5)
+	abortDelay          = time.Second * time.Duration(1)
+	factoryResetMagic   = 168
 )
 
 // the modes that we cycle between when we are in the 'select' state.
@@ -253,6 +254,15 @@ type stateGrace struct {
 }
 
 func (s *stateGrace) onEnter(r *resetButton) {
+
+	switch modeCycle[r.modeIndex] {
+	case "reset-userdata", "reset-root":
+		// for dangerous actions, choose a longer delay
+		graceDelay := dangerousGraceDelay
+	default:
+		// for safe actions, choose a shorter delay
+		graceDelay := safeGraceDelay
+	}
 	r.timeout.Reset(graceDelay)
 	r.callback(&model.ResetMode{
 		Mode:     modeCycle[r.modeIndex],
