@@ -44,4 +44,4 @@ if [ "$BUILDBOX_BRANCH" = "master" ]; then
 	go build -ldflags "-X main.BugsnagKey=${BUGSNAG_KEY}" -tags release -o ./bin/${BIN_NAME}
 else
 	go build -o ./bin/${BIN_NAME}
-fis
+fi
