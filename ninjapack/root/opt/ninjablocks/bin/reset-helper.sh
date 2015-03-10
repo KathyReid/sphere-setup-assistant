@@ -55,6 +55,8 @@ main()
 	;;
 	factory-reset)
 		shift 1
+		sphere-reset --reset-setup
+		sync
 		factory_reset "$@"
 	;;
 	esac
