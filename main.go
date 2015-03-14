@@ -55,7 +55,9 @@ func main() {
 
 	restartHeartbeat := false
 
-	// responsibility for guaranteeing BLE has started properly is now the function of upstart scripts.
+	if err := EnsureBLEIsUp(time.Second * 30); err != nil {
+		logger.Errorf("BLE failed to start: %s", err)
+	}
 
 	startResetMonitor(func(m *model.ResetMode) {
 		if pairing_ui == nil || controlChecker == nil {
