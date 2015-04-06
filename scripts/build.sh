@@ -41,7 +41,7 @@ export CGO_CFLAGS=
 export CGO_LDFLAGS=
 go clean -r github.com/ninjasphere/go-wireless github.com/ninjasphere/sphere-setup-assistant
 if [ "$BUILDBOX_BRANCH" = "master" ]; then
-	go build -ldflags "-X main.BugsnagKey=${BUGSNAG_KEY}" -tags release -o ./bin/${BIN_NAME}
+	go build -ldflags "-X main.BugsnagKey ${BUGSNAG_KEY}" -tags release -o ./bin/${BIN_NAME}
 else
 	go build -o ./bin/${BIN_NAME}
 fi
