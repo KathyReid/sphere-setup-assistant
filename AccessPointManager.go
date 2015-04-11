@@ -68,6 +68,7 @@ func (a *AccessPointManager) SetupFirewall() {
 		// Allow the pairing webserver to be seen from the AP
 		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-p", "tcp", "--dport", "8888", "-j", "ACCEPT")
 		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-p", "tcp", "--dport", "80", "-j", "ACCEPT")
+		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-p", "tcp", "--dport", "9001", "-j", "ACCEPT")
 
 		// Allow clients to get IP addresses from DHCP
 		a.iptables("-A", "INPUT", "-i", a.NetworkInterface, "-p", "udp", "--dport", "67:68", "-j", "ACCEPT")
