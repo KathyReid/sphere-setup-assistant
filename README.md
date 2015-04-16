@@ -1,9 +1,9 @@
-NAME
-====
+# sphere-setup-assistant
+
 sphere-setup-assistant - help ensure that the sphere is always connected to some kind of network
 
-REBOOT AND RESET SUPPORT
-========================
+# REBOOT AND RESET SUPPORT
+
 Sphere setup assistant monitors the hardware reset button and then initiates one of 3 different kinds
 of reset action depending on the length of the press.
 
@@ -17,3 +17,7 @@ When the reset button is first pressed, the led matrix shows solid green, indica
 the led matrix show a sold red indicating a factory reset will occur.
 
 When the button is released, the color corresponding to the selected mode fades until the action occurs.
+
+# License
+
+Copyright (c) 2015 Ninjablocks Inc licensed under the MIT license
